@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>الأخبار والمنشورات - فريق روح التعليمي</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+    <script src="rouh-core.js"></script>
+
+    <style>
+        :root {
+            --rouh-green: #159934;
+            --rouh-green-dark: #0b5e1e;
+            --rouh-green-deep: #063811;
+            --rouh-green-bright: #22c55e;
+            --rouh-soft: #e8faee;
+
+            --clr-blue: #3b82f6;
+            --clr-cyan: #22d3ee;
+            --clr-purple: #8b5cf6;
+            --clr-emerald: #10b981;
+            --clr-orange: #f97316;
+            --clr-rose: #f43f5e;
+            --clr-amber: #f59e0b;
+
+            --bg-outer: #e4ece7;
+            --bg-app: #f4f8f5;
+            --bg-card: #ffffff;
+            --bg-subtle: #e9f0ec;
+            --bg-glass: rgba(255, 255, 255, 0.96);
+            --text-primary: #0f1f14;
+            --text-secondary: #5a7061;
+            --border-light: #dfece3;
+            --card-shadow: 0 8px 22px rgba(11, 94, 30, 0.06);
+        }
+
+        body.dark-ui {
+            --bg-outer: #000000;
+            --bg-app: #060907;
+            --bg-card: #111814;
+            --bg-subtle: #1c2620;
+            --bg-glass: rgba(12, 18, 14, 0.96);
+            --rouh-soft: rgba(34, 197, 94, 0.15);
+            --text-primary: #f5faf6;
+            --text-secondary: #94a89a;
+            --border-light: #1e2d23;
+            --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Noto Sans Arabic", "Geeza Pro", Tahoma, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* 🔥 إزالة الخطوط من كل الكلمات والروابط والأزرار */
+        a, a:link, a:visited, a:hover, a:active, a:focus,
+        button, .post-explanation-text a,
+        .read-more-btn, .view-all-comments-btn,
+        h1, h2, h3, h4, h5, h6, span, p, div {
+            text-decoration: none !important;
+            text-decoration-line: none !important;
+            text-underline-offset: 0 !important;
+            border-bottom: none;
+        }
+        a:focus, button:focus { outline: none; }
+
+        body {
+            background-color: var(--bg-outer);
+            color: var(--text-primary);
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .phone-frame {
+            width: 100%;
+            max-width: 480px;
+            min-height: 100vh;
+            background-color: var(--bg-app);
+            position: relative;
+            overflow-x: hidden;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.15);
+            padding-top: 66px;
+            padding-bottom: 94px;
+        }
+
+        @keyframes viewSlideIn {
+            from { opacity: 0; transform: translate3d(0, 10px, 0); }
+            to { opacity: 1; transform: translate3d(0, 0, 0); }
+        }
+
+        @keyframes heartPop {
+            0% { transform: scale(0.2); opacity: 0; }
+            50% { transform: scale(1.25); opacity: 1; }
+            100% { transform: scale(1); opacity: 0; }
+        }
+
+        @keyframes likeBounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+        }
+
+        .glass-topbar {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            height: 66px;
+            background: linear-gradient(135deg, var(--rouh-green-deep) 0%, var(--rouh-green-dark) 55%, var(--rouh-green) 100%);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 14px;
+            z-index: 2000;
+            box-shadow: 0 4px 20px rgba(6, 56, 17, 0.28);
+        }
+
+        .top-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .top-brand img {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            border: 2px solid #4ade80;
+            background: #ffffff;
+            object-fit: cover;
+        }
+
+        .top-brand-text h2 {
+            font-size: 0.96rem;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+
+        .top-brand-text span {
+            font-size: 0.72rem;
+            color: #bbf7d0;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .top-tools {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tool-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 13px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            cursor: pointer;
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.25);
+            transition: transform 0.15s ease;
+        }
+
+        .tool-btn:active { transform: scale(0.92); }
+
+        .composer-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: 18px;
+            margin: 12px 14px 8px;
+            padding: 10px 12px;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .composer-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1.5px solid var(--rouh-green);
+            background: #fff;
+            flex-shrink: 0;
+        }
+
+        .composer-trigger-btn {
+            flex: 1;
+            padding: 9px 14px;
+            border-radius: 20px;
+            border: 1.5px solid var(--border-light);
+            background: var(--bg-subtle);
+            color: var(--text-secondary);
+            font-size: 0.78rem;
+            font-weight: 800;
+            text-align: right;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .composer-trigger-btn:active { border-color: var(--rouh-green); }
+
+        .posts-feed-container {
+            padding: 0 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .social-post-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            animation: viewSlideIn 0.25s ease-out;
+        }
+
+        .post-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+        }
+
+        .post-author-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .post-author-img {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1.5px solid var(--rouh-green);
+            background: #fff;
+        }
+
+        .post-author-meta h5 {
+            font-size: 0.82rem;
+            font-weight: 900;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-bottom: 1px;
+        }
+
+        .post-sub-meta {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            font-weight: 700;
+        }
+
+        .post-cat-badge {
+            padding: 2px 7px;
+            border-radius: 8px;
+            font-size: 0.62rem;
+            font-weight: 800;
+            background: var(--cat-soft, var(--rouh-soft));
+            color: var(--cat-clr, var(--rouh-green));
+        }
+
+        .post-body-content {
+            padding: 2px 12px 10px;
+            text-align: right;
+        }
+
+        .post-title-heading {
+            font-size: 0.88rem;
+            font-weight: 900;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+            line-height: 1.35;
+        }
+
+        .post-explanation-text {
+            font-size: 0.79rem;
+            color: var(--text-primary);
+            line-height: 1.6;
+            white-space: pre-line;
+            opacity: 0.92;
+        }
+
+        .post-explanation-text a {
+            color: var(--rouh-green-bright);
+            font-weight: 800;
+        }
+
+        .read-more-btn {
+            border: none;
+            background: none;
+            color: var(--rouh-green-bright);
+            font-size: 0.74rem;
+            font-weight: 800;
+            cursor: pointer;
+            padding: 0;
+            margin-right: 4px;
+        }
+
+        /* 🔥 معرض الصور مع دعم السحب */
+        .post-media-wrapper {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+            background: var(--bg-subtle);
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: pan-y;
+        }
+
+        .multi-img-track {
+            display: flex;
+            transition: transform 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
+            width: 100%;
+            will-change: transform;
+        }
+
+        .multi-img-track.dragging {
+            transition: none;
+        }
+
+        .multi-img-slide {
+            min-width: 100%;
+            position: relative;
+        }
+
+        .multi-img-slide img {
+            width: 100%;
+            max-height: 320px;
+            object-fit: cover;
+            display: block;
+            pointer-events: none;
+        }
+
+        .img-counter-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: rgba(0, 0, 0, 0.65);
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.66rem;
+            font-weight: 800;
+            backdrop-filter: blur(4px);
+        }
+
+        .slider-nav-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.55);
+            color: #fff;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 5;
+            backdrop-filter: blur(4px);
+            font-size: 0.75rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .post-media-wrapper:hover .slider-nav-arrow { opacity: 1; }
+        .slider-nav-arrow.prev { right: 8px; }
+        .slider-nav-arrow.next { left: 8px; }
+
+        .slider-dots-row {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 4px;
+            z-index: 5;
+        }
+
+        .slider-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.45);
+            transition: all 0.2s;
+        }
+
+        .slider-dot.active {
+            width: 14px;
+            border-radius: 4px;
+            background: #ffffff;
+        }
+
+        .post-graphic-banner {
+            padding: 20px 16px;
+            background: var(--banner-grad, linear-gradient(135deg, #063811, #159934));
+            color: #ffffff;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 140px;
+            position: relative;
+        }
+
+        .post-graphic-banner i {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            color: #fde68a;
+        }
+
+        .post-graphic-banner h4 {
+            font-size: 0.95rem;
+            font-weight: 900;
+            line-height: 1.4;
+            max-width: 90%;
+        }
+
+        .dbl-tap-heart {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            font-size: 4rem;
+            color: #ffffff;
+            filter: drop-shadow(0 6px 18px rgba(244, 63, 94, 0.65));
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .dbl-tap-heart.animate { animation: heartPop 0.75s ease-out forwards; }
+
+        .post-Order-stats {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px 6px;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            font-weight: 700;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .post-actions-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 4px 8px;
+        }
+
+        .post-actions-right {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .social-act-btn {
+            border: none;
+            background: transparent;
+            color: var(--text-primary);
+            padding: 6px 10px;
+            border-radius: 10px;
+            font-size: 0.76rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .social-act-btn:active { background: var(--bg-subtle); }
+        .social-act-btn i { font-size: 1.02rem; }
+        .social-act-btn.liked { color: #f43f5e; }
+        .social-act-btn.liked i { animation: likeBounce 0.35s ease; }
+        .social-act-btn.saved { color: var(--clr-amber); }
+
+        .post-comments-preview {
+            padding: 6px 12px 10px;
+            background: var(--bg-subtle);
+            border-top: 1px solid var(--border-light);
+        }
+
+        .preview-comment-line {
+            font-size: 0.73rem;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            line-height: 1.4;
+        }
+
+        .preview-comment-line b {
+            color: var(--rouh-green-bright);
+            margin-left: 4px;
+        }
+
+        .view-all-comments-btn {
+            border: none;
+            background: none;
+            color: var(--text-secondary);
+            font-size: 0.69rem;
+            font-weight: 800;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .bottom-dock {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-top: 1px solid var(--border-light);
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            align-items: end;
+            padding: 6px 8px 10px;
+            z-index: 2000;
+            box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .dock-btn {
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            font-size: 0.68rem;
+            font-weight: 800;
+            cursor: pointer;
+            padding: 6px 4px;
+            border-radius: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .dock-icon-box {
+            width: 36px;
+            height: 32px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            transition: all 0.2s ease;
+        }
+
+        .dock-btn.active { color: var(--rouh-green); }
+
+        .dock-btn.active .dock-icon-box {
+            background: var(--rouh-soft);
+            color: var(--rouh-green);
+            transform: translateY(-2px);
+        }
+
+        .dock-btn.center-home-btn {
+            position: relative;
+            background: transparent !important;
+            padding-top: 0;
+        }
+
+        .center-home-orb {
+            width: 50px;
+            height: 50px;
+            border-radius: 18px;
+            background: var(--bg-card);
+            border: 2px solid var(--border-light);
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            margin-top: -20px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+            transition: all 0.25s ease;
+        }
+
+        .modal-wrap {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.68);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 3000;
+        }
+
+        .modal-wrap.open { display: flex; }
+
+        .modal-box {
+            background: var(--bg-card);
+            border-radius: 26px 26px 0 0;
+            width: 100%;
+            max-width: 480px;
+            padding: 20px 16px;
+            border-top: 2px solid var(--rouh-green);
+            position: relative;
+            animation: viewSlideIn 0.22s ease-out;
+            max-height: 88vh;
+            overflow-y: auto;
+        }
+
+        .modal-close-x {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            border: none;
+            background: var(--bg-subtle);
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        .form-field { margin-bottom: 12px; text-align: right; }
+        .form-field label {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+            color: var(--text-primary);
+        }
+
+        .form-field input,
+        .form-field select,
+        .form-field textarea {
+            width: 100%;
+            padding: 11px 12px;
+            border-radius: 13px;
+            border: 1.5px solid var(--border-light);
+            background: var(--bg-app);
+            color: var(--text-primary);
+            font-size: 0.84rem;
+            outline: none;
+        }
+
+        .btn-save-modal {
+            width: 100%;
+            padding: 13px;
+            border: none;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--rouh-green-bright), var(--rouh-green-dark));
+            color: #ffffff;
+            font-size: 0.9rem;
+            font-weight: 800;
+            cursor: pointer;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .comments-list-scroll {
+            max-height: 46vh;
+            overflow-y: auto;
+            margin: 12px 0;
+            padding-left: 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .comment-item-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .comment-item-row img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1.5px solid var(--rouh-green);
+            flex-shrink: 0;
+        }
+
+        .comment-bubble {
+            background: var(--bg-subtle);
+            border: 1px solid var(--border-light);
+            border-radius: 14px;
+            padding: 8px 11px;
+            flex: 1;
+        }
+
+        .comment-bubble-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2px;
+        }
+
+        .comment-bubble-top h6 { font-size: 0.76rem; font-weight: 800; color: var(--rouh-green-bright); }
+        .comment-bubble-top span { font-size: 0.63rem; color: var(--text-secondary); }
+        .comment-bubble p { font-size: 0.78rem; color: var(--text-primary); line-height: 1.4; }
+
+        .comment-input-bar {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            border-top: 1px solid var(--border-light);
+            padding-top: 12px;
+        }
+
+        .comment-input-bar input {
+            flex: 1;
+            padding: 10px 14px;
+            border-radius: 20px;
+            border: 1.5px solid var(--border-light);
+            background: var(--bg-app);
+            color: var(--text-primary);
+            font-size: 0.8rem;
+            outline: none;
+        }
+
+        .comment-send-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, var(--rouh-green-bright), var(--rouh-green-dark));
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .toast-alert {
+            position: fixed;
+            bottom: 105px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--rouh-green-deep);
+            color: #ffffff;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            z-index: 4000;
+            display: none;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+        }
+    </style>
+</head>
+<body class="dark-ui">
+
+<div class="phone-frame">
+
+    <header class="glass-topbar">
+        <div class="top-brand" onclick="triggerGoNav('home', this)">
+            <img src="https://i.ibb.co/whHk6hcT/IMG-20261011-WA0031.jpg" alt="فريق روح التعليمي">
+            <div class="top-brand-text">
+                <h2>أخبار فريق روح التعليمي</h2>
+                <span id="topBarStageLabel"><i class="fa-solid fa-newspaper"></i> مجتمع الطلاب والقرارات</span>
+            </div>
+        </div>
+        <div class="top-tools">
+            <button class="tool-btn" onclick="openCreatePostModal()" title="نشر بوست جديد">
+                <i class="fa-solid fa-plus"></i>
+            </button>
+            <button class="tool-btn" onclick="toggleDarkUI()" title="تبديل المظهر">
+                <i class="fa-solid fa-sun" id="themeToggleIcon"></i>
+            </button>
+        </div>
+    </header>
+
+    <div class="composer-card">
+        <img id="composerUserAvatar" src="https://i.ibb.co/whHk6hcT/IMG-20261011-WA0031.jpg" class="composer-avatar" alt="صورة الناشر">
+        <button class="composer-trigger-btn" onclick="openCreatePostModal()">
+            شارك خبراً أو بوست مع حتى 4 صور مع الزملاء...
+        </button>
+    </div>
+
+    <main class="posts-feed-container" id="newsFeedContainer" style="margin-top: 6px;"></main>
+
+    <nav class="bottom-dock">
+        <button class="dock-btn" id="dock-profile" onclick="triggerGoNav('profile', this)">
+            <div class="dock-icon-box"><i class="fa-solid fa-user"></i></div>
+            <span>الملف الشخصي</span>
+        </button>
+        <button class="dock-btn active" id="dock-news" onclick="window.scrollTo({top:0, behavior:'smooth'})">
+            <div class="dock-icon-box"><i class="fa-solid fa-newspaper"></i></div>
+            <span>الأخبار</span>
+        </button>
+        <button class="dock-btn center-home-btn" id="dock-home" onclick="triggerGoNav('home', this)">
+            <div class="center-home-orb">
+                <i class="fa-solid fa-house-chimney"></i>
+            </div>
+            <span>الرئيسية</span>
+        </button>
+        <button class="dock-btn" id="dock-quizzes" onclick="triggerGoNav('quizzes', this)">
+            <div class="dock-icon-box"><i class="fa-solid fa-clipboard-check"></i></div>
+            <span>الاختبارات</span>
+        </button>
+        <button class="dock-btn" id="dock-chat" onclick="triggerGoNav('chat')">
+            <div class="dock-icon-box"><i class="fa-solid fa-comments"></i></div>
+            <span>الدردشة</span>
+        </button>
+    </nav>
+
+</div>
+
+<div class="modal-wrap" id="popupModal" onclick="if(event.target===this) closePopup()">
+    <div class="modal-box">
+        <button class="modal-close-x" onclick="closePopup()"><i class="fa-solid fa-xmark"></i></button>
+        <div id="popupBody"></div>
+    </div>
+</div>
+
+<div class="toast-alert" id="toastBox">تم بنجاح!</div>
+
+<script>
+    function triggerGoNav(key) { Rouh.go(key); }
+
+    let currentUser = {
+        name: 'طالب روح',
+        avatar: 'https://i.ibb.co/whHk6hcT/IMG-20261011-WA0031.jpg'
+    };
+
+    function syncUserFromStorage() {
+        currentUser.id = Rouh.me.id;
+        currentUser.name = Rouh.me.full_name;
+        currentUser.avatar = Rouh.avatarOf(Rouh.me);
+        document.getElementById('composerUserAvatar').src = currentUser.avatar;
+        Rouh.applyTheme('themeToggleIcon');
+    }
+
+    // (تم حذف المنشورات التجريبية: المحتوى يأتي من جدول posts)
+
+    let postsList = [];
+    let uploadedImagesArray = [];
+
+    async function loadPostsFromStorage() {
+        const sb = Rouh.sb;
+        const { data: posts, error } = await sb.from('posts')
+            .select('id,author_id,category,is_official,title,body,images,shares_count,created_at,author:profiles!posts_author_id_fkey(full_name,avatar_url,is_verified),post_likes(count),post_comments(count)')
+            .order('created_at', { ascending: false }).limit(60);
+        if (error) { postsList = []; renderNewsFeed(); showToast('تعذر تحميل المنشورات ⚠️'); return; }
+        const ids = posts.map(p => p.id);
+        let myLikes = new Set(), mySaves = new Set(), lastByPost = {};
+        if (ids.length) {
+            const [l, sv, cm] = await Promise.all([
+                sb.from('post_likes').select('post_id').eq('user_id', currentUser.id).in('post_id', ids),
+                sb.from('post_saves').select('post_id').eq('user_id', currentUser.id).in('post_id', ids),
+                sb.from('post_comments').select('post_id,body,created_at,author:profiles!post_comments_user_id_fkey(full_name,avatar_url)')
+                    .in('post_id', ids).order('created_at', { ascending: false }).limit(300)
+            ]);
+            (l.data || []).forEach(r => myLikes.add(r.post_id));
+            (sv.data || []).forEach(r => mySaves.add(r.post_id));
+            (cm.data || []).forEach(r => { if (!lastByPost[r.post_id]) lastByPost[r.post_id] = r; });
+        }
+        postsList = posts.map(p => {
+            const last = lastByPost[p.id];
+            const official = !!p.is_official;
+            return {
+                id: p.id,
+                authorId: p.author_id,
+                author: official ? 'فريق روح التعليمي' : ((p.author && p.author.full_name) || 'طالب روح'),
+                avatar: official ? Rouh.DEFAULT_AVATAR : Rouh.avatarOf(p.author),
+                verified: official || !!(p.author && p.author.is_verified),
+                category: p.category,
+                catColor: official ? '#f43f5e' : '#10b981',
+                catSoft: official ? 'rgba(244,63,94,0.15)' : 'rgba(16,185,129,0.15)',
+                time: Rouh.timeAgo(p.created_at),
+                title: p.title,
+                explanation: p.body,
+                images: (p.images || []).map(Rouh.safeUrl).filter(Boolean),
+                likes: p.post_likes && p.post_likes[0] ? p.post_likes[0].count : 0,
+                likedByMe: myLikes.has(p.id),
+                savedByMe: mySaves.has(p.id),
+                shares: p.shares_count,
+                commentCount: p.post_comments && p.post_comments[0] ? p.post_comments[0].count : 0,
+                comments: last ? [{ user: (last.author && last.author.full_name) || 'طالب', text: last.body }] : [],
+                canDelete: p.author_id === currentUser.id || Rouh.isStaff()
+            };
+        });
+        renderNewsFeed();
+    }
+
+        function parseTextWithLinks(text) {
+        if (!text) return '';
+        const urlRegex = /(https?:\/\/[^\s<]+)/g;
+        return Rouh.esc(text).replace(urlRegex, url => `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`);
+    }
+
+    function renderNewsFeed() {
+        const container = document.getElementById('newsFeedContainer');
+
+        if (!postsList.length) {
+            container.innerHTML = `
+                <div style="background:var(--bg-card); border:1px solid var(--border-light); border-radius:18px; padding:26px 16px; text-align:center;">
+                    <i class="fa-regular fa-newspaper" style="font-size:2rem; color:var(--text-secondary); margin-bottom:8px;"></i>
+                    <h4 style="font-size:0.86rem; margin-bottom:4px;">لا توجد منشورات حالياً</h4>
+                    <p style="font-size:0.74rem; color:var(--text-secondary);">اضغط على زر (+) لنشر أول بوست.</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = postsList.map(post => {
+            const e = Rouh.esc;
+            const parsedExplanation = parseTextWithLinks(post.explanation);
+            const isLong = (post.explanation || '').length > 130;
+            const displayBody = isLong ? parseTextWithLinks(post.explanation.slice(0, 130) + '...') : parsedExplanation;
+
+            let mediaHTML = '';
+            if (post.images && post.images.length > 0) {
+                const slides = post.images.map((imgSrc, imgIdx) => `
+                    <div class="multi-img-slide">
+                        <img src="${e(imgSrc)}" alt="صورة المنشور" loading="lazy">
+                        <span class="img-counter-badge">${imgIdx + 1} / ${post.images.length}</span>
+                    </div>
+                `).join('');
+
+                const dots = post.images.length > 1 ? post.images.map((_, i) => `
+                    <span class="slider-dot ${i === 0 ? 'active' : ''}" id="dot-${post.id}-${i}"></span>
+                `).join('') : '';
+
+                const arrows = post.images.length > 1 ? `
+                    <button class="slider-nav-arrow prev" onclick="event.stopPropagation(); slideMultiImages('${post.id}', -1)"><i class="fa-solid fa-chevron-right"></i></button>
+                    <button class="slider-nav-arrow next" onclick="event.stopPropagation(); slideMultiImages('${post.id}', 1)"><i class="fa-solid fa-chevron-left"></i></button>
+                ` : '';
+
+                mediaHTML = `
+                    <div class="post-media-wrapper"
+                         data-postid="${post.id}"
+                         ontouchstart="onCarouselTouchStart(event)"
+                         ontouchmove="onCarouselTouchMove(event, '${post.id}')"
+                         ontouchend="onCarouselTouchEnd(event, '${post.id}')"
+                         ondblclick="handleDoubleTapLike('${post.id}')">
+                        <div class="multi-img-track" id="track-${post.id}" data-idx="0" data-total="${post.images.length}">
+                            ${slides}
+                        </div>
+                        ${arrows}
+                        <div class="slider-dots-row" id="dotsRow-${post.id}">${dots}</div>
+                        <i class="fa-solid fa-heart dbl-tap-heart" id="dblHeart-${post.id}"></i>
+                    </div>
+                `;
+            } else {
+                mediaHTML = `
+                    <div class="post-media-wrapper"
+                         ondblclick="handleDoubleTapLike('${post.id}')">
+                        <div class="post-graphic-banner" style="background:${post.bannerGrad || 'linear-gradient(135deg,#063811,#159934)'};">
+                            <i class="fa-solid ${post.bannerIcon || 'fa-newspaper'}"></i>
+                            <h4>${e(post.title)}</h4>
+                        </div>
+                        <i class="fa-solid fa-heart dbl-tap-heart" id="dblHeart-${post.id}"></i>
+                    </div>
+                `;
+            }
+
+            const lastComment = post.comments && post.comments.length > 0 ? post.comments[post.comments.length - 1] : null;
+
+            return `
+                <article class="social-post-card">
+                    <div class="post-header">
+                        <div class="post-author-box">
+                            <img src="${e(post.avatar)}" class="post-author-img" alt="${e(post.author)}">
+                            <div class="post-author-meta">
+                                <h5>
+                                    <span>${e(post.author)}</span>
+                                    ${post.verified ? '<i class="fa-solid fa-circle-check" style="color:#22c55e; font-size:0.75rem;"></i>' : ''}
+                                </h5>
+                                <div class="post-sub-meta">
+                                    <span>${post.time}</span>
+                                    <span>•</span>
+                                    <span class="post-cat-badge" style="--cat-clr:${post.catColor}; --cat-soft:${post.catSoft};">${e(post.category)}</span>
+                                </div>
+                            </div>
+                        </div>
+                        ${post.canDelete ? `<button class="post-options-btn" onclick="deletePostById('${post.id}')" title="حذف المنشور" style="border:none; background:none; color:var(--text-secondary); cursor:pointer; padding:4px;">
+                            <i class="fa-solid fa-trash-can" style="font-size:0.78rem;"></i>
+                        </button>` : ''}
+                    </div>
+
+                    <div class="post-body-content">
+                        <h3 class="post-title-heading">${e(post.title)}</h3>
+                        <p class="post-explanation-text" id="exp-txt-${post.id}">
+                            ${displayBody}
+                            ${isLong ? `<button class="read-more-btn" onclick="toggleFullPostText('${post.id}', \`${encodeURIComponent(parsedExplanation)}\`)">عرض المزيد</button>` : ''}
+                        </p>
+                    </div>
+
+                    ${mediaHTML}
+
+                    <div class="post-Order-stats">
+                        <span><i class="fa-solid fa-heart" style="color:#f43f5e; margin-left:4px;"></i> ${post.likes} إعجاب</span>
+                        <span onclick="openCommentsDrawer('${post.id}')" style="cursor:pointer;">${post.commentCount} تعليق • ${post.shares} مشاركة</span>
+                    </div>
+
+                    <div class="post-actions-bar">
+                        <div class="post-actions-right">
+                            <button class="social-act-btn ${post.likedByMe ? 'liked' : ''}" onclick="togglePostLike('${post.id}')">
+                                <i class="${post.likedByMe ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
+                                <span>أعجبني</span>
+                            </button>
+                            <button class="social-act-btn" onclick="openCommentsDrawer('${post.id}')">
+                                <i class="fa-regular fa-comment-dots"></i>
+                                <span>تعليق</span>
+                            </button>
+                            <button class="social-act-btn" onclick="sharePostItem('${post.id}')">
+                                <i class="fa-solid fa-share-nodes"></i>
+                                <span>مشاركة</span>
+                            </button>
+                        </div>
+                        <button class="social-act-btn ${post.savedByMe ? 'saved' : ''}" onclick="togglePostSave('${post.id}')" title="حفظ في الملف الشخصي">
+                            <i class="${post.savedByMe ? 'fa-solid' : 'fa-regular'} fa-bookmark"></i>
+                        </button>
+                    </div>
+
+                    <div class="post-comments-preview" onclick="openCommentsDrawer('${post.id}')" style="cursor:pointer;">
+                        ${lastComment ? `<div class="preview-comment-line"><b>${e(lastComment.user)}:</b> ${e(lastComment.text)}</div>` : ''}
+                        <button class="view-all-comments-btn">${post.commentCount > 0 ? `عرض كل التعليقات (${post.commentCount})...` : 'أضف تعليقاً...'}</button>
+                    </div>
+                </article>
+            `;
+        }).join('');
+    }
+
+    function toggleFullPostText(postId, encodedText) {
+        const pEl = document.getElementById('exp-txt-' + postId);
+        if (pEl) pEl.innerHTML = decodeURIComponent(encodedText);
+    }
+
+    /* 🔥 نظام تقليب الصور بالسحب (Swipe) مثل انستغرام */
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchDeltaX = 0;
+    let isSwiping = false;
+    let isHorizontalSwipe = null;
+
+    function onCarouselTouchStart(event) {
+        const track = event.currentTarget.querySelector('.multi-img-track');
+        if (!track) return;
+        const total = parseInt(track.getAttribute('data-total'), 10);
+        if (total <= 1) return;
+
+        touchStartX = event.touches[0].clientX;
+        touchStartY = event.touches[0].clientY;
+        touchDeltaX = 0;
+        isSwiping = true;
+        isHorizontalSwipe = null;
+        track.classList.add('dragging');
+    }
+
+    function onCarouselTouchMove(event, postId) {
+        if (!isSwiping) return;
+        const track = document.getElementById('track-' + postId);
+        if (!track) return;
+
+        const deltaX = event.touches[0].clientX - touchStartX;
+        const deltaY = event.touches[0].clientY - touchStartY;
+
+        if (isHorizontalSwipe === null) {
+            if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 8) {
+                isHorizontalSwipe = true;
+            } else if (Math.abs(deltaY) > 8) {
+                isHorizontalSwipe = false;
+                isSwiping = false;
+                track.classList.remove('dragging');
+                return;
+            }
+        }
+
+        if (isHorizontalSwipe) {
+            touchDeltaX = deltaX;
+            const idx = parseInt(track.getAttribute('data-idx'), 10);
+            const total = parseInt(track.getAttribute('data-total'), 10);
+            const basePercent = idx * 100;
+            const dragPercent = (deltaX / track.offsetWidth) * 100;
+            // RTL: السحب لليسار (deltaX سلبي) يذهب للصورة التالية
+            let finalPercent = basePercent + dragPercent;
+            // منع السحب الزائد خارج النطاق
+            const minPercent = 0;
+            const maxPercent = (total - 1) * 100;
+            if (finalPercent < minPercent) finalPercent = minPercent - 8;
+            if (finalPercent > maxPercent) finalPercent = maxPercent + 8;
+            track.style.transform = `translate3d(${finalPercent}%, 0, 0)`;
+        }
+    }
+
+    function onCarouselTouchEnd(event, postId) {
+        const track = document.getElementById('track-' + postId);
+        if (!track) return;
+        track.classList.remove('dragging');
+        if (!isSwiping) return;
+        isSwiping = false;
+
+        if (!isHorizontalSwipe) return;
+
+        const threshold = 50;
+        if (touchDeltaX < -threshold) {
+            // سحب لليسار → الصورة التالية
+            slideMultiImages(postId, 1);
+        } else if (touchDeltaX > threshold) {
+            // سحب لليمين → الصورة السابقة
+            slideMultiImages(postId, -1);
+        } else {
+            // إرجاع للوضع الأصلي
+            const idx = parseInt(track.getAttribute('data-idx'), 10);
+            track.style.transform = `translate3d(${idx * 100}%, 0, 0)`;
+        }
+        touchDeltaX = 0;
+        isHorizontalSwipe = null;
+    }
+
+    function slideMultiImages(postId, direction) {
+        const track = document.getElementById('track-' + postId);
+        if (!track) return;
+        let idx = parseInt(track.getAttribute('data-idx'), 10);
+        const total = parseInt(track.getAttribute('data-total'), 10);
+
+        idx = (idx + direction + total) % total;
+        track.setAttribute('data-idx', idx);
+        track.style.transform = `translate3d(${idx * 100}%, 0, 0)`;
+
+        for (let i = 0; i < total; i++) {
+            const dot = document.getElementById(`dot-${postId}-${i}`);
+            if (dot) dot.classList.toggle('active', i === idx);
+        }
+    }
+
+    async function togglePostLike(postId) {
+        const post = postsList.find(p => p.id === postId);
+        if (!post) return;
+        await setPostLike(post, !post.likedByMe);
+        renderNewsFeed();
+    }
+
+    async function setPostLike(post, want) {
+        post.likedByMe = want;
+        post.likes += want ? 1 : -1;
+        const q = want
+            ? Rouh.sb.from('post_likes').insert({ post_id: post.id, user_id: currentUser.id })
+            : Rouh.sb.from('post_likes').delete().eq('post_id', post.id).eq('user_id', currentUser.id);
+        const { error } = await q;
+        if (error && error.code !== '23505') {
+            post.likedByMe = !want;
+            post.likes += want ? -1 : 1;
+            showToast('تعذر تحديث الإعجاب ⚠️');
+        }
+    }
+
+    async function handleDoubleTapLike(postId) {
+        const post = postsList.find(p => p.id === postId);
+        if (!post) return;
+        const heartEl = document.getElementById('dblHeart-' + postId);
+        if (heartEl) {
+            heartEl.classList.remove('animate');
+            void heartEl.offsetWidth;
+            heartEl.classList.add('animate');
+        }
+        if (!post.likedByMe) {
+            await setPostLike(post, true);
+            setTimeout(() => renderNewsFeed(), 450);
+        }
+    }
+
+    async function togglePostSave(postId) {
+        const post = postsList.find(p => p.id === postId);
+        if (!post) return;
+        const want = !post.savedByMe;
+        const q = want
+            ? Rouh.sb.from('post_saves').insert({ post_id: post.id, user_id: currentUser.id })
+            : Rouh.sb.from('post_saves').delete().eq('post_id', post.id).eq('user_id', currentUser.id);
+        const { error } = await q;
+        if (error && error.code !== '23505') { showToast('تعذر تحديث المحفوظات ⚠️'); return; }
+        post.savedByMe = want;
+        renderNewsFeed();
+        showToast(want ? 'تم حفظ المنشور في قسم المحفوظات بملفك الشخصي 🔖' : 'تمت إزالة المنشور من المحفوظات');
+    }
+
+    async function sharePostItem(postId) {
+        const post = postsList.find(p => p.id === postId);
+        if (!post) return;
+        const r = await Rouh.sb.rpc('increment_post_shares', { p_post: post.id });
+        if (!r.error && typeof r.data === 'number') post.shares = r.data; else post.shares += 1;
+        renderNewsFeed();
+
+        const shareText = `📢 ${post.title}\n\n${post.explanation}\n\n— عبر تطبيق فريق روح التعليمي`;
+        if (navigator.share) {
+            try { await navigator.share({ title: post.title, text: shareText }); return; } catch (e) {}
+        }
+        if (navigator.clipboard) navigator.clipboard.writeText(shareText);
+        showToast('تم نسخ الخبر والشرح للمشاركة 🔗');
+    }
+
+    async function openCommentsDrawer(postId) {
+        const post = postsList.find(p => p.id === postId);
+        if (!post) return;
+        const e = Rouh.esc;
+        showPopup('<p style="text-align:center; font-size:0.78rem; color:var(--text-secondary); padding:16px 0;">جارٍ تحميل التعليقات...</p>');
+        const { data, error } = await Rouh.sb.from('post_comments')
+            .select('id,body,created_at,author:profiles!post_comments_user_id_fkey(full_name,avatar_url)')
+            .eq('post_id', postId).order('created_at', { ascending: true }).limit(200);
+        const list = error ? [] : data;
+        post.commentCount = list.length;
+
+        const commentsHTML = list.length ? list.map(c => `
+            <div class="comment-item-row">
+                <img src="${e(Rouh.avatarOf(c.author))}" alt="${e(c.author && c.author.full_name)}">
+                <div class="comment-bubble">
+                    <div class="comment-bubble-top">
+                        <h6>${e(c.author && c.author.full_name)}</h6>
+                        <span>${e(Rouh.timeAgo(c.created_at))}</span>
+                    </div>
+                    <p>${e(c.body)}</p>
+                </div>
+            </div>
+        `).join('') : `<p style="text-align:center; font-size:0.78rem; color:var(--text-secondary); padding:16px 0;">لا توجد تعليقات بعد.</p>`;
+
+        showPopup(`
+            <h4 style="font-size:0.92rem; font-weight:800; text-align:center; margin-bottom:6px;">
+                <i class="fa-regular fa-comments" style="color:var(--rouh-green);"></i> التعليقات (${list.length})
+            </h4>
+            <div class="comments-list-scroll">${commentsHTML}</div>
+            <div class="comment-input-bar">
+                <img src="${e(currentUser.avatar)}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; border:1.5px solid var(--rouh-green);">
+                <input type="text" id="newCommentInp" maxlength="1000" placeholder="اكتب تعليقاً..." onkeydown="if(event.key==='Enter') submitNewComment('${post.id}');">
+                <button class="comment-send-btn" onclick="submitNewComment('${post.id}')"><i class="fa-solid fa-paper-plane" style="font-size:0.75rem;"></i></button>
+            </div>
+        `);
+        const box = document.querySelector('.comments-list-scroll');
+        if (box) box.scrollTop = box.scrollHeight;
+    }
+
+    async function submitNewComment(postId) {
+        const inp = document.getElementById('newCommentInp');
+        const text = inp.value.trim();
+        if (!text) return;
+        const post = postsList.find(p => p.id === postId);
+        if (!post) return;
+        inp.disabled = true;
+        const { error } = await Rouh.sb.from('post_comments').insert({ post_id: postId, user_id: currentUser.id, body: text });
+        if (error) { inp.disabled = false; showToast('تعذر نشر التعليق ⚠️'); return; }
+        post.commentCount += 1;
+        post.comments = [{ user: currentUser.name, text: text }];
+        renderNewsFeed();
+        openCommentsDrawer(postId);
+        showToast('تم نشر تعليقك 💬');
+    }
+
+    function openCreatePostModal() {
+        uploadedImagesArray = [];
+        const officialRow = Rouh.isStaff() ? `
+            <label style="display:flex; align-items:center; gap:8px; font-size:0.78rem; font-weight:800; margin-bottom:10px; cursor:pointer;">
+                <input type="checkbox" id="postOfficialChk" style="width:17px; height:17px; accent-color:var(--rouh-green);">
+                نشر كخبر رسمي باسم فريق روح التعليمي
+            </label>` : '';
+        showPopup(`
+            <h4 style="font-size:0.94rem; font-weight:800; margin-bottom:10px;">
+                <i class="fa-solid fa-pen-to-square" style="color:var(--rouh-green);"></i> نشر بوست جديد (حتى 4 صور)
+            </h4>
+
+            <div class="form-field">
+                <label>العنوان الرئيسي</label>
+                <input type="text" id="postTitleInp" maxlength="200" placeholder="عنوان الخبر أو البوست الدراسي...">
+            </div>
+
+            <div class="form-field">
+                <label>الشرح والتفاصيل (يدعم روابط الويب والتلغرام)</label>
+                <textarea id="postExplainInp" rows="3" maxlength="5000" placeholder="اكتب الشرح وأرفق الروابط هنا..."></textarea>
+            </div>
+
+            <div class="form-field">
+                <label>إرفاق الصور (اختر حتى 4 صور)</label>
+                <input type="file" id="multiImgFileInput" accept="image/*" multiple onchange="handleMultipleImagesUpload(event)" style="padding:8px;">
+                <div id="multiImgPreviewGrid" style="display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-top:8px;"></div>
+                <p id="imgCountLbl" style="font-size:0.7rem; color:var(--text-secondary); margin-top:6px;">0 / 4 صور مرفقة</p>
+            </div>
+            ${officialRow}
+            <button class="btn-save-modal" id="publishPostBtn" onclick="publishNewPost()">
+                <i class="fa-solid fa-paper-plane"></i> نشر البوست الآن
+            </button>
+        `);
+    }
+
+    /* 🔥 تحميل الصور مع الحفاظ على ترتيبها الصحيح */
+    async function handleMultipleImagesUpload(event) {
+        const files = Array.from(event.target.files || []).filter(f => f.type.startsWith('image/')).slice(0, 4);
+        const grid = document.getElementById('multiImgPreviewGrid');
+        const lbl = document.getElementById('imgCountLbl');
+        uploadedImagesArray = files; // ملفات حقيقية تُرفع إلى التخزين عند النشر
+        grid.innerHTML = files.map((f, i) => `
+            <div style="position:relative; aspect-ratio:1/1; border-radius:10px; overflow:hidden; border:1px solid var(--border-light);">
+                <img src="${URL.createObjectURL(f)}" style="width:100%; height:100%; object-fit:cover;">
+                <span style="position:absolute; bottom:2px; right:2px; background:rgba(0,0,0,0.6); color:#fff; font-size:0.6rem; font-weight:800; padding:1px 5px; border-radius:6px;">${i + 1}</span>
+            </div>
+        `).join('');
+        if (lbl) lbl.textContent = `${files.length} / 4 صور مرفقة`;
+    }
+
+        async function publishNewPost() {
+        const title = document.getElementById('postTitleInp').value.trim();
+        const explain = document.getElementById('postExplainInp').value.trim();
+
+        if (!title || !explain) {
+            showToast('يرجى كتابة العنوان والشرح أولاً ⚠️');
+            return;
+        }
+        const btn = document.getElementById('publishPostBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جارٍ النشر...';
+        try {
+            const urls = [];
+            for (const f of uploadedImagesArray) urls.push(await Rouh.uploadImage(f, 'posts'));
+            const chk = document.getElementById('postOfficialChk');
+            const official = !!(chk && chk.checked && Rouh.isStaff());
+            const { error } = await Rouh.sb.from('posts').insert({
+                author_id: currentUser.id,
+                title: title,
+                body: explain,
+                images: urls,
+                is_official: official,
+                category: official ? 'خبر هام' : 'مجتمع روح'
+            });
+            if (error) throw error;
+            closePopup();
+            await loadPostsFromStorage();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            showToast('تم نشر البوست بنجاح 🚀');
+        } catch (err) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> نشر البوست الآن';
+            showToast('تعذر نشر البوست، تأكد من الاتصال والصور ⚠️');
+        }
+    }
+
+    async function deletePostById(postId) {
+        if (!confirm('هل تريد حذف هذا المنشور نهائياً؟')) return;
+        const { error } = await Rouh.sb.from('posts').delete().eq('id', postId);
+        if (error) { showToast('لا تملك صلاحية حذف هذا المنشور ⚠️'); return; }
+        postsList = postsList.filter(p => p.id !== postId);
+        renderNewsFeed();
+        showToast('تم حذف المنشور 🗑️');
+    }
+
+    function showPopup(html) {
+        document.getElementById('popupBody').innerHTML = html;
+        document.getElementById('popupModal').classList.add('open');
+    }
+
+    function closePopup() {
+        document.getElementById('popupModal').classList.remove('open');
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById('toastBox');
+        t.innerText = msg;
+        t.style.display = 'block';
+        setTimeout(() => { t.style.display = 'none'; }, 2200);
+    }
+
+    function toggleDarkUI() { Rouh.toggleTheme('themeToggleIcon'); }
+
+    window.onload = async function() {
+        const me = await Rouh.init();
+        if (!me) return;
+        syncUserFromStorage();
+        await loadPostsFromStorage();
+    };
+</script>
+
+</body>
+</html>
