@@ -1,0 +1,2591 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <link rel="preconnect" href="https://pzqbyevyxirvfywqzstr.supabase.co" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>الشروحات المرئية - تطبيق فريق روح التعليمي</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+    <script src="rouh-core.js"></script>
+
+    <style>
+        /* ==================== المتغيرات اللونية والخط الافتراضي للنظام (التصميم الأولي الأصلي) ==================== */
+        :root {
+            --rouh-green: #159934;
+            --rouh-green-dark: #0b5e1e;
+            --rouh-green-deep: #063811;
+            --rouh-green-bright: #22c55e;
+            --rouh-soft: #e8faee;
+
+            --clr-blue: #3b82f6;
+            --clr-purple: #8b5cf6;
+            --clr-emerald: #10b981;
+            --clr-orange: #f97316;
+            --clr-rose: #f43f5e;
+            --clr-cyan: #06b6d4;
+            --clr-indigo: #6366f1;
+            --clr-amber: #f59e0b;
+
+            /* ألوان الواجهة (الوضع النهاري الحيوي الأصلي) */
+            --bg-outer: #e4ece7;
+            --bg-app: #f4f8f5;
+            --bg-card: #ffffff;
+            --bg-glass: rgba(255, 255, 255, 0.92);
+            --text-primary: #0f1f14;
+            --text-secondary: #5a7061;
+            --border-light: #dfece3;
+            --card-shadow: 0 8px 24px rgba(11, 94, 30, 0.07);
+        }
+
+        /* الوضع الليلي المتوهج الأصلي */
+        body.dark-ui {
+            --bg-outer: #040805;
+            --bg-app: #0a110c;
+            --bg-card: #121d16;
+            --bg-glass: rgba(18, 29, 22, 0.92);
+            --rouh-soft: rgba(34, 197, 94, 0.15);
+            --text-primary: #f0f9f2;
+            --text-secondary: #94ab9b;
+            --border-light: #1f3325;
+            --card-shadow: 0 8px 25px rgba(0, 0, 0, 0.45);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Noto Sans Arabic", "Geeza Pro", Tahoma, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-outer);
+            color: var(--text-primary);
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .phone-frame {
+            width: 100%;
+            max-width: 480px;
+            min-height: 100vh;
+            background-color: var(--bg-app);
+            position: relative;
+            overflow-x: hidden;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.2);
+            padding-top: 64px;
+            padding-bottom: 88px;
+        }
+
+        /* إضاءات خلفية محيطية خفيفة */
+        .ambient-blob {
+            position: fixed;
+            width: 210px;
+            height: 210px;
+            border-radius: 50%;
+            filter: blur(55px);
+            opacity: 0.18;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .blob-1 { top: 80px; right: -60px; background: var(--clr-emerald); }
+        .blob-2 { bottom: 120px; left: -60px; background: var(--clr-blue); }
+
+        @keyframes fastFadeIn {
+            from { opacity: 0; transform: translate3d(0, 6px, 0); }
+            to { opacity: 1; transform: translate3d(0, 0, 0); }
+        }
+
+        @keyframes seekPopAnim {
+            0% { transform: scale(0.6); opacity: 0.95; }
+            50% { transform: scale(1.08); opacity: 1; }
+            100% { transform: scale(1.2); opacity: 0; }
+        }
+
+        /* ==================== الشريط العلوي الأصلي الثابت ==================== */
+        .glass-topbar {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--rouh-green-deep) 0%, var(--rouh-green-dark) 50%, var(--rouh-green) 100%);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 14px;
+            z-index: 2000;
+            box-shadow: 0 4px 20px rgba(6, 56, 17, 0.25);
+        }
+
+        .top-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .top-brand img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid #4ade80;
+            background: #ffffff;
+            object-fit: cover;
+        }
+
+        .top-brand-text h2 {
+            font-size: 0.98rem;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+
+        .top-brand-text span {
+            font-size: 0.72rem;
+            color: #bbf7d0;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .top-tools {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .tool-btn {
+            width: 35px;
+            height: 35px;
+            border-radius: 11px;
+            background: rgba(255, 255, 255, 0.14);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.92rem;
+            cursor: pointer;
+        }
+
+        .tool-btn:active { transform: scale(0.92); }
+
+        /* ==================== الصفحات السريعة ==================== */
+        .app-page {
+            display: none;
+            padding: 14px;
+            position: relative;
+            z-index: 5;
+        }
+
+        .app-page.active {
+            display: block;
+            animation: fastFadeIn 0.14s ease-out;
+        }
+
+        /* صفحة المشغل مرفوعة للأعلى بدون حواف علوية ليظهر العنوان تحتها بوضوح */
+        #page-watch {
+            padding: 0 0 20px;
+        }
+
+        /* البانر الترحيبي الأصلي */
+        .animated-hero-card {
+            background: linear-gradient(-45deg, #063811, #0d6e25, #15803d, #0f4c3a);
+            border-radius: 22px;
+            padding: 16px;
+            color: #ffffff;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            box-shadow: 0 10px 26px rgba(11, 94, 30, 0.22);
+        }
+
+        .hero-text h3 {
+            font-size: 1rem;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .hero-text p {
+            font-size: 0.76rem;
+            color: #dcfce7;
+            line-height: 1.45;
+        }
+
+        .hero-avatar-logo {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            border: 2.5px solid #4ade80;
+            background: #ffffff;
+            flex-shrink: 0;
+        }
+
+        .section-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 6px 0 12px;
+        }
+
+        .section-head h4 {
+            font-size: 0.92rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .back-pill-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border-light);
+            background: var(--bg-card);
+            color: var(--rouh-green);
+            font-size: 0.75rem;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: var(--card-shadow);
+        }
+
+        .back-pill-btn:active { transform: scale(0.95); }
+
+        /* ==================== بطاقات المراحل الدراسية الأصلية (stage-box) ==================== */
+        .stage-cards-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 11px;
+            margin-bottom: 16px;
+        }
+
+        .stage-box {
+            background: var(--bg-card);
+            border: 1.5px solid var(--border-light);
+            border-radius: 18px;
+            padding: 16px 10px;
+            text-align: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.15s ease, border-color 0.15s ease;
+            box-shadow: var(--card-shadow);
+        }
+
+        .stage-box:active { transform: scale(0.96); }
+
+        .stage-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            height: 4px;
+            background: var(--st-color);
+        }
+
+        .stage-box.selected {
+            border-color: var(--st-color);
+            box-shadow: 0 8px 20px var(--st-shadow);
+        }
+
+        .stage-orb {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            margin: 0 auto 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            background: var(--st-soft);
+            color: var(--st-color);
+        }
+
+        .stage-box h5 {
+            font-size: 0.86rem;
+            font-weight: 800;
+            margin-bottom: 3px;
+        }
+
+        .stage-box p {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        /* ==================== بطاقات المواد الدراسية الأصلية (glow-book-card) ==================== */
+        .colorful-books-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 11px;
+            margin-bottom: 16px;
+        }
+
+        .glow-book-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: 20px;
+            padding: 14px 12px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.15s ease;
+        }
+
+        .glow-book-card:active { transform: scale(0.96); }
+
+        .glow-book-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            height: 4px;
+            background: var(--card-accent);
+        }
+
+        .book-top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 9px;
+        }
+
+        .book-icon-bubble {
+            width: 40px;
+            height: 40px;
+            border-radius: 13px;
+            background: var(--card-soft);
+            color: var(--card-accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .book-badge {
+            font-size: 0.65rem;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-weight: 700;
+            background: var(--card-soft);
+            color: var(--card-accent);
+        }
+
+        .glow-book-card h5 {
+            font-size: 0.84rem;
+            font-weight: 800;
+            margin-bottom: 3px;
+        }
+
+        .glow-book-card p {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .book-bottom-action {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.71rem;
+            font-weight: 700;
+            color: var(--card-accent);
+            border-top: 1px dashed var(--border-light);
+            padding-top: 7px;
+        }
+
+        /* ==================== البحث + فلاتر الأبحاث + بطاقات فيديو يوتيوب ==================== */
+        .search-upload-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .search-input-wrap {
+            flex: 1;
+            position: relative;
+        }
+
+        .search-input-wrap input {
+            width: 100%;
+            padding: 10px 36px 10px 12px;
+            border-radius: 14px;
+            border: 1.5px solid var(--border-light);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-size: 0.8rem;
+            outline: none;
+        }
+
+        .search-input-wrap input:focus { border-color: var(--rouh-green); }
+
+        .search-input-wrap i {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--rouh-green);
+            font-size: 0.88rem;
+        }
+
+        .btn-upload-vid {
+            padding: 0 14px;
+            border-radius: 14px;
+            border: none;
+            background: linear-gradient(135deg, var(--rouh-green-bright), var(--rouh-green-dark));
+            color: #ffffff;
+            font-size: 0.76rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .topics-filter-bar {
+            display: flex;
+            gap: 7px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            margin-bottom: 8px;
+            scrollbar-width: none;
+        }
+
+        .topics-filter-bar::-webkit-scrollbar { display: none; }
+
+        .topic-pill {
+            padding: 6px 13px;
+            border-radius: 12px;
+            border: 1px solid var(--border-light);
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            font-size: 0.74rem;
+            font-weight: 800;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .topic-pill.active {
+            background: var(--rouh-green);
+            color: #ffffff;
+            border-color: var(--rouh-green);
+        }
+
+        .yt-cards-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 13px;
+        }
+
+        .yt-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            cursor: pointer;
+            transition: transform 0.15s ease;
+        }
+
+        .yt-card:active { transform: scale(0.98); }
+
+        /* رفع أيقونة المقطع للأعلى قليلاً داخل البطاقة ليظهر العنوان تحتها بوضوح */
+        .yt-thumb {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: var(--thumb-grad, linear-gradient(135deg, #063811, #159934));
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 16px 28px;
+            text-align: center;
+            color: #ffffff;
+        }
+
+        .yt-thumb-topic {
+            position: absolute;
+            top: 8px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.72);
+            color: #4ade80;
+            padding: 3px 10px;
+            border-radius: 8px;
+            font-size: 0.67rem;
+            font-weight: 800;
+        }
+
+        .yt-play-ico {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(244, 63, 94, 0.94);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.05rem;
+            margin-top: -12px;
+            margin-bottom: 6px;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+        }
+
+        .yt-thumb-title {
+            font-size: 0.83rem;
+            font-weight: 800;
+            line-height: 1.35;
+            max-width: 92%;
+        }
+
+        .yt-duration {
+            position: absolute;
+            bottom: 8px;
+            left: 8px;
+            background: rgba(0, 0, 0, 0.85);
+            color: #ffffff;
+            padding: 2px 7px;
+            border-radius: 6px;
+            font-size: 0.68rem;
+            font-weight: 800;
+            direction: ltr;
+        }
+
+        .yt-card-body {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 11px 12px;
+        }
+
+        .yt-card-body img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1.5px solid var(--rouh-green);
+            background: #fff;
+            flex-shrink: 0;
+        }
+
+        .yt-card-info h4 {
+            font-size: 0.84rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            line-height: 1.35;
+            margin-bottom: 3px;
+        }
+
+        .yt-card-meta {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            font-weight: 700;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        /* ==================== مشغل الفيديو المرفوع للأعلى قليلاً + الوضع العريض ==================== */
+        .yt-player-box {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: #05091c;
+            position: relative;
+            z-index: 20;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+        }
+
+        .yt-player-box.drive-mode #cv,
+        .yt-player-box.drive-mode #lessonVideoEl,
+        .yt-player-box.drive-mode #bigPlay,
+        .yt-player-box.drive-mode .yt-gesture-layer,
+        .yt-player-box.drive-mode #ytControlsBar { display: none !important; }
+
+        #lessonVideoEl,
+        #cv {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+        /* زر التشغيل الوسطي مرفوع للأعلى قليلاً */
+        #bigPlay {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            padding-bottom: 24px;
+            background: rgba(5, 10, 31, 0.32);
+            cursor: pointer;
+            border: 0;
+            z-index: 15;
+            transition: opacity 0.2s;
+        }
+
+        #bigPlay span {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.95);
+            display: grid;
+            place-items: center;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.45);
+        }
+
+        #bigPlay svg {
+            width: 28px;
+            height: 28px;
+            fill: var(--rouh-green);
+        }
+
+        #bigPlay.hide {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .exit-landscape-top-btn {
+            position: absolute;
+            top: 14px;
+            right: 16px;
+            z-index: 30;
+            display: none;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            background: rgba(0, 0, 0, 0.72);
+            color: #ffffff;
+            font-size: 0.78rem;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        /* الوضع العريض الكامل (يختفي كل ما في الشاشة وتبقى شاشة المقطع وأزراره فقط) */
+        body.landscape-fullscreen-mode {
+            background: #000000 !important;
+            overflow: hidden !important;
+        }
+
+        body.landscape-fullscreen-mode .glass-topbar,
+        body.landscape-fullscreen-mode .bottom-dock,
+        body.landscape-fullscreen-mode .watch-details-area,
+        body.landscape-fullscreen-mode .ambient-blob {
+            display: none !important;
+        }
+
+        body.landscape-fullscreen-mode .phone-frame {
+            padding: 0 !important;
+            max-width: 100vw !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            background: #000000 !important;
+            box-shadow: none !important;
+        }
+
+        body.landscape-fullscreen-mode .exit-landscape-top-btn {
+            display: inline-flex !important;
+        }
+
+        @media (orientation: portrait) {
+            body.landscape-fullscreen-mode #ytPlayerBox {
+                position: fixed !important;
+                top: 50% !important;
+                left: 50% !important;
+                width: 100vh !important;
+                height: 100vw !important;
+                transform: translate(-50%, -50%) rotate(90deg) !important;
+                z-index: 99999 !important;
+                aspect-ratio: unset !important;
+                background: #000000 !important;
+            }
+        }
+
+        @media (orientation: landscape) {
+            body.landscape-fullscreen-mode #ytPlayerBox {
+                position: fixed !important;
+                inset: 0 !important;
+                width: 100vw !important;
+                height: 100vh !important;
+                transform: none !important;
+                z-index: 99999 !important;
+                aspect-ratio: unset !important;
+                background: #000000 !important;
+            }
+        }
+
+        #ytPlayerBox.controls-hidden .yt-controls-bar,
+        #ytPlayerBox.controls-hidden .exit-landscape-top-btn {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* طبقة النقر المزدوج للتقديم والتأخير (±10 ثواني) */
+        .yt-gesture-layer {
+            position: absolute;
+            inset: 0 0 44px 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            z-index: 10;
+        }
+
+        .gesture-zone {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .seek-ripple {
+            pointer-events: none;
+            opacity: 0;
+            width: 78px;
+            height: 78px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.68);
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            font-size: 0.7rem;
+            font-weight: 800;
+        }
+
+        .seek-ripple i { font-size: 1.1rem; }
+        .seek-ripple.show { animation: seekPopAnim 0.55s ease-out forwards; }
+
+        /* شريط التحكم بالمقطع */
+        .yt-controls-bar {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            left: 0;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.4), transparent);
+            padding: 8px 12px 6px;
+            z-index: 20;
+            color: #ffffff;
+            transition: opacity 0.2s ease;
+        }
+
+        .yt-timeline {
+            width: 100%;
+            height: 4px;
+            accent-color: var(--rouh-green-bright);
+            cursor: pointer;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .yt-controls-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .yt-ctrl-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .yt-ctrl-btn {
+            border: none;
+            background: transparent;
+            color: #ffffff;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 6px;
+            border-radius: 8px;
+        }
+
+        .yt-landscape-btn {
+            background: rgba(21, 153, 52, 0.45);
+            border: 1px solid #4ade80;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.72rem;
+            font-weight: 800;
+        }
+
+        .yt-time-txt {
+            font-size: 0.72rem;
+            font-weight: 700;
+            direction: ltr;
+            color: #e2e8f0;
+        }
+
+        /* ==================== تفاصيل الفيديو أسفل المشغل ==================== */
+        .watch-details-area {
+            padding: 14px;
+            background: var(--bg-app);
+        }
+
+        .watch-title-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+
+        .watch-title-row h3 {
+            font-size: 0.95rem;
+            font-weight: 800;
+            line-height: 1.4;
+            color: var(--text-primary);
+        }
+
+        .watch-submeta {
+            font-size: 0.73rem;
+            color: var(--text-secondary);
+            font-weight: 700;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 7px;
+            margin-bottom: 12px;
+        }
+
+        .watch-topic-badge {
+            background: var(--rouh-soft);
+            color: var(--rouh-green);
+            padding: 2px 9px;
+            border-radius: 8px;
+            font-weight: 800;
+        }
+
+        /* شريط أزرار التفاعل (بدون زر المشاركة وبدون زر تنزيل الفيديو) */
+        .watch-actions-bar {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 12px;
+            scrollbar-width: none;
+        }
+
+        .watch-actions-bar::-webkit-scrollbar { display: none; }
+
+        .watch-act-pill {
+            padding: 8px 13px;
+            border-radius: 14px;
+            border: 1px solid var(--border-light);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-size: 0.75rem;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            cursor: pointer;
+            box-shadow: var(--card-shadow);
+        }
+
+        .watch-act-pill:active { transform: scale(0.95); }
+
+        .watch-act-pill.liked {
+            background: rgba(244, 63, 94, 0.14);
+            color: #f43f5e;
+            border-color: #f43f5e;
+        }
+
+        .watch-act-pill.saved {
+            background: var(--rouh-soft);
+            color: var(--rouh-green);
+            border-color: var(--rouh-green);
+        }
+
+        /* شريط فقرات الدرس السريعة */
+        .scenes-strip-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: 16px;
+            padding: 10px 12px;
+            margin-bottom: 12px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .scenes-strip-title {
+            font-size: 0.74rem;
+            font-weight: 800;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .scenes-chips-row {
+            display: flex;
+            gap: 7px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .scenes-chips-row::-webkit-scrollbar { display: none; }
+
+        .scene-jump-chip {
+            padding: 5px 11px;
+            border-radius: 10px;
+            border: 1px solid var(--border-light);
+            background: var(--bg-app);
+            color: var(--text-primary);
+            font-size: 0.72rem;
+            font-weight: 700;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .scene-jump-chip.active {
+            background: var(--rouh-green);
+            color: #ffffff;
+            border-color: var(--rouh-green);
+        }
+
+        /* صندوق التعليقات */
+        .yt-comments-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: 16px;
+            padding: 12px;
+            margin-bottom: 16px;
+            cursor: pointer;
+            box-shadow: var(--card-shadow);
+        }
+
+        .yt-comments-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.78rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+
+        .yt-comments-preview {
+            font-size: 0.74rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* ==================== الشريط السفلي الأصلي الثابت ==================== */
+        .bottom-dock {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-top: 1px solid var(--border-light);
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            align-items: end;
+            padding: 6px 6px 10px;
+            z-index: 2000;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
+        }
+
+        .dock-btn {
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 6px 4px;
+            border-radius: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .dock-btn i { font-size: 1.15rem; }
+
+        .dock-btn.active {
+            color: var(--rouh-green);
+            background: var(--rouh-soft);
+        }
+
+        .dock-btn.center-home-btn {
+            position: relative;
+            background: transparent !important;
+            padding-top: 0;
+        }
+
+        .center-home-orb {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: var(--bg-app);
+            border: 2px solid var(--border-light);
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: -18px;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+        }
+
+        /* ==================== النوافذ المنبثقة ==================== */
+        .modal-wrap {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            padding: 16px;
+        }
+
+        .modal-wrap.open { display: flex; }
+
+        .modal-box {
+            background: var(--bg-card);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 410px;
+            padding: 20px;
+            border: 2px solid var(--rouh-green);
+            position: relative;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .modal-close-x {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: var(--bg-app);
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        .form-field { margin-bottom: 11px; text-align: right; }
+        .form-field label {
+            display: block;
+            font-size: 0.76rem;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .form-field input,
+        .form-field select {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1.5px solid var(--border-light);
+            background: var(--bg-app);
+            color: var(--text-primary);
+            font-size: 0.82rem;
+            outline: none;
+        }
+
+        .btn-main-action {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--rouh-green-bright), var(--rouh-green-dark));
+            color: #ffffff;
+            font-size: 0.88rem;
+            font-weight: 800;
+            cursor: pointer;
+            margin-top: 6px;
+        }
+
+        .comments-list-box {
+            max-height: 42vh;
+            overflow-y: auto;
+            margin: 10px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .comment-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 9px;
+        }
+
+        .comment-row img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1.5px solid var(--rouh-green);
+            background: #fff;
+        }
+
+        .comment-bubble {
+            flex: 1;
+            background: var(--bg-app);
+            border: 1px solid var(--border-light);
+            border-radius: 14px;
+            padding: 8px 11px;
+        }
+
+        .comment-bubble h6 {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--rouh-green);
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2px;
+        }
+
+        .comment-bubble p {
+            font-size: 0.78rem;
+            line-height: 1.45;
+        }
+
+        .toast-alert {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--rouh-green-deep);
+            color: #ffffff;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            z-index: 100000;
+            display: none;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <script>try{if(localStorage.getItem("rouh_dark_mode")==="true")document.body.classList.add("dark-ui");}catch(e){}</script>
+
+<div class="phone-frame">
+    <!-- كرات الإضاءة الخلفية -->
+    <div class="ambient-blob blob-1"></div>
+    <div class="ambient-blob blob-2"></div>
+
+    <!-- ==================== الشريط العلوي الثابت الأصلي ==================== -->
+    <header class="glass-topbar">
+        <div class="top-brand" onclick="triggerGoNav('home', this)">
+            <img src="https://i.ibb.co/whHk6hcT/IMG-20261011-WA0031.jpg" alt="فريق روح التعليمي">
+            <div class="top-brand-text">
+                <h2>فريق روح التعليمي</h2>
+                <span><i class="fa-solid fa-circle-play"></i> قسم الشروحات المرئية</span>
+            </div>
+        </div>
+        <div class="top-tools">
+            <button class="tool-btn" data-role="content" onclick="openUploadVideoModal()" title="رفع درس جديد">
+                <i class="fa-solid fa-video"></i>
+            </button>
+            <button class="tool-btn" onclick="toggleDarkUI()" title="تبديل المظهر">
+                <i class="fa-solid fa-moon" id="themeToggleIcon"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- ==================== صفحة 1: اختيار المرحلة الدراسية (تاسع / بكالوريا) ==================== -->
+    <main id="page-stages" class="app-page active">
+
+        <div class="animated-hero-card">
+            <div class="hero-text">
+                <h3>الشروحات والدروس المصورة</h3>
+                <p>اختر المرحلة الدراسية لتصفح فيديوهات الشرح المرتبة حسب الأبحاث لكل مادة.</p>
+            </div>
+            <img src="https://i.ibb.co/whHk6hcT/IMG-20261011-WA0031.jpg" alt="شعار روح" class="hero-avatar-logo">
+        </div>
+
+        <div class="section-head">
+            <h4><i class="fa-solid fa-graduation-cap" style="color:var(--rouh-green);"></i> اختر المرحلة الدراسية</h4>
+        </div>
+
+        <!-- قسمان رئيسيان: بكالوريا وتاسع -->
+        <div class="stage-cards-row">
+            <div class="stage-box" style="--st-color:#10b981; --st-soft:rgba(16,185,129,0.14); --st-shadow:rgba(16,185,129,0.22);" onclick="openBacPage()">
+                <div class="stage-orb"><i class="fa-solid fa-user-graduate"></i></div>
+                <h5>شهادة البكالوريا</h5>
+                <p>العلمي والأدبي • كافة المواد</p>
+            </div>
+
+            <div class="stage-box" style="--st-color:#3b82f6; --st-soft:rgba(59,130,246,0.14); --st-shadow:rgba(59,130,246,0.22);" onclick="openNinthPage()">
+                <div class="stage-orb"><i class="fa-solid fa-compass-drafting"></i></div>
+                <h5>التاسع الأساسي</h5>
+                <p>شهادة التعليم الأساسي • كافة المواد</p>
+            </div>
+        </div>
+
+        <!-- الفيديو التجريبي المميز (درس النهايات) جاهز للتشغيل الفوري -->
+        <div class="section-head">
+            <h4><i class="fa-solid fa-circle-play" style="color:var(--clr-blue);"></i> الفيديو التجريبي المميز (درس النهايات)</h4>
+        </div>
+        <article class="yt-card" onclick="playLimitsDemoDirectly()">
+            <div class="yt-thumb" style="--thumb-grad:linear-gradient(135deg, #122150, #0a1230, #2563eb);">
+                <span class="yt-thumb-topic"><i class="fa-solid fa-star"></i> البحث 1: النهايات والاستمرار</span>
+                <div class="yt-play-ico"><i class="fa-solid fa-play"></i></div>
+                <div class="yt-thumb-title">درس النهايات — الرياضيات (البكالوريا العلمي)</div>
+                <span class="yt-duration">02:35</span>
+            </div>
+            <div class="yt-card-body">
+                <img src="https://i.ibb.co/whHk6hcT/IMG-20261011-WA0031.jpg" alt="فريق روح">
+                <div class="yt-card-info">
+                    <h4>درس النهايات — الشرح التفاعلي الكامل مع القوانين والأمثلة</h4>
+                    <div class="yt-card-meta">
+                        <span>منصة فريق روح التعليمي</span>
+                        <span>•</span>
+                        <span>2,480 مشاهدة</span>
+                        <span>•</span>
+                        <span>فيديو تفاعلي</span>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+    </main>
+
+    <!-- ==================== صفحة 2: قسم البكالوريا (علمي / أدبي + المواد) ==================== -->
+    <section id="page-bac" class="app-page">
+        <div class="section-head" style="margin-top:0;">
+            <h4><i class="fa-solid fa-user-graduate" style="color:var(--rouh-green);"></i> شروحات شهادة البكالوريا</h4>
+            <button class="back-pill-btn" onclick="switchLessonPage('page-stages')">
+                <i class="fa-solid fa-arrow-right"></i> المراحل
+            </button>
+        </div>
+
+        <!-- زرين: بكالوريا علمي / بكالوريا أدبي -->
+        <div class="stage-cards-row">
+            <div class="stage-box selected" id="branchBox-sci" style="--st-color:#10b981; --st-soft:rgba(16,185,129,0.14); --st-shadow:rgba(16,185,129,0.22);" onclick="selectBacBranch('sci')">
+                <div class="stage-orb"><i class="fa-solid fa-atom"></i></div>
+                <h5>بكالوريا علمي</h5>
+                <p>9 مواد شاملة</p>
+            </div>
+
+            <div class="stage-box" id="branchBox-lit" style="--st-color:#8b5cf6; --st-soft:rgba(139,92,246,0.14); --st-shadow:rgba(139,92,246,0.22);" onclick="selectBacBranch('lit')">
+                <div class="stage-orb"><i class="fa-solid fa-feather-pointed"></i></div>
+                <h5>بكالوريا أدبي</h5>
+                <p>8 مواد شاملة</p>
+            </div>
+        </div>
+
+        <div class="section-head">
+            <h4 id="bacSubTitleText"><i class="fa-solid fa-video" style="color:var(--rouh-green);"></i> مواد البكالوريا العلمي:</h4>
+        </div>
+
+        <div id="bacSubjectsGrid" class="colorful-books-grid"></div>
+    </section>
+
+    <!-- ==================== صفحة 3: قسم الصف التاسع (كافة مواد التاسع) ==================== -->
+    <section id="page-ninth" class="app-page">
+        <div class="section-head" style="margin-top:0;">
+            <h4><i class="fa-solid fa-compass-drafting" style="color:var(--clr-blue);"></i> شروحات الصف التاسع الأساسي</h4>
+            <button class="back-pill-btn" onclick="switchLessonPage('page-stages')">
+                <i class="fa-solid fa-arrow-right"></i> المراحل
+            </button>
+        </div>
+
+        <div id="ninthSubjectsGrid" class="colorful-books-grid"></div>
+    </section>
+
+    <!-- ==================== صفحة 4: قناة المادة (نظام البحث + الأبحاث + الفيديوهات) ==================== -->
+    <section id="page-channel" class="app-page">
+        <div class="section-head" style="margin-top:0;">
+            <h4 id="channelHeaderName"><i class="fa-solid fa-circle-play" style="color:var(--rouh-green);"></i> شروحات المادة</h4>
+            <button class="back-pill-btn" id="channelReturnBtn">
+                <i class="fa-solid fa-arrow-right"></i> المواد
+            </button>
+        </div>
+
+        <!-- شريط البحث الفوري + زر رفع درس في بحث محدد -->
+        <div class="search-upload-row">
+            <div class="search-input-wrap">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="lessonSearchInp" placeholder="ابحث عن درس أو اسم بحث..." oninput="renderChannelVideosList()">
+            </div>
+            <button class="btn-upload-vid" data-role="content" onclick="openUploadVideoModal()">
+                <i class="fa-solid fa-cloud-arrow-up"></i> رفع درس
+            </button>
+        </div>
+
+        <!-- شريط الأبحاث والوحدات -->
+        <div class="topics-filter-bar" id="topicsFilterStrip"></div>
+
+        <!-- قائمة الفيديوهات بتصميم يوتيوب -->
+        <div class="yt-cards-stack" id="channelVideosStack"></div>
+    </section>
+
+    <!-- ==================== صفحة 5: مشغل الفيديو التفاعلي (درس النهايات) ==================== -->
+    <section id="page-watch" class="app-page">
+
+        <!-- حاوية المقطع مرفوعة للأعلى لتظهر العناوين تحتها بوضوح -->
+        <div class="yt-player-box" id="ytPlayerBox">
+
+            <!-- زر الخروج من الوضع العريض (يظهر في الوضع العريض فقط) -->
+            <button class="exit-landscape-top-btn" onclick="exitLandscapeMode()">
+                <i class="fa-solid fa-compress"></i> تصغير الشاشة والعودة
+            </button>
+
+            <!-- عنصر الفيديو المرفوع من الهاتف -->
+            <video id="lessonVideoEl" playsinline style="display:none;"></video>
+
+            <!-- مشغل Google Drive (للفيديوهات التي يضيفها المشرف كروابط درايف) -->
+            <iframe id="driveFrame" title="فيديو الدرس" allow="autoplay; fullscreen" allowfullscreen referrerpolicy="no-referrer" style="display:none; width:100%; height:100%; border:0; background:#000;"></iframe>
+
+            <!-- لوحة محرك الفيديو السريعة (1280x720 لأداء فائق السرعة) -->
+            <canvas id="cv" width="1280" height="720"></canvas>
+
+            <!-- زر التشغيل الوسطي الكبير -->
+            <button id="bigPlay" aria-label="تشغيل" onclick="toggleEnginePlay()">
+                <span>
+                    <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" transform="scale(-1 1) translate(-24 0)"></path></svg>
+                </span>
+            </button>
+
+            <!-- طبقة النقر المزدوج للتقديم والتأخير (±10 ثواني) -->
+            <div class="yt-gesture-layer">
+                <div class="gesture-zone" id="zoneRewind" onclick="togglePlayerControlsVisibility()" ondblclick="seekVideoBy(-10, 'right')">
+                    <div class="seek-ripple" id="rippleRight">
+                        <i class="fa-solid fa-backward-fast"></i>
+                        <span>-10 ثواني</span>
+                    </div>
+                </div>
+                <div class="gesture-zone" id="zoneForward" onclick="togglePlayerControlsVisibility()" ondblclick="seekVideoBy(10, 'left')">
+                    <div class="seek-ripple" id="rippleLeft">
+                        <i class="fa-solid fa-forward-fast"></i>
+                        <span>+10 ثواني</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- شريط التحكم بالمقطع -->
+            <div class="yt-controls-bar" id="ytControlsBar">
+                <input type="range" class="yt-timeline" id="ytTimelineSlider" min="0" max="100" step="0.2" value="0" oninput="scrubVideoTimeline(this.value)">
+                <div class="yt-controls-row">
+                    <div class="yt-ctrl-group">
+                        <button class="yt-ctrl-btn" onclick="toggleEnginePlay()" id="playPauseIconBtn">
+                            <i class="fa-solid fa-play"></i>
+                        </button>
+                        <button class="yt-ctrl-btn" onclick="seekVideoBy(-10, 'right')" title="تأخير 10 ثواني">
+                            <i class="fa-solid fa-rotate-right"></i>
+                        </button>
+                        <button class="yt-ctrl-btn" onclick="seekVideoBy(10, 'left')" title="تقديم 10 ثواني">
+                            <i class="fa-solid fa-rotate-left"></i>
+                        </button>
+                        <span class="yt-time-txt"><span id="tNow">0:00</span> / <span id="tTotal">2:35</span></span>
+                    </div>
+
+                    <div class="yt-ctrl-group">
+                        <button class="yt-ctrl-btn" onclick="cycleVideoSpeed()" id="speedBtnTxt" style="font-size:0.74rem; font-weight:800;">
+                            1x
+                        </button>
+                        <button class="yt-ctrl-btn yt-landscape-btn" onclick="toggleLandscapeMode()" id="landscapeToggleBtn">
+                            <i class="fa-solid fa-expand"></i>
+                            <span id="landscapeBtnText">بالعرض</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- تفاصيل الفيديو أسفل المشغل (بدون زر مشاركة وبدون زر تنزيل الفيديو) -->
+        <div class="watch-details-area">
+            <div class="watch-title-row">
+                <h3 id="watchTitleText">درس النهايات — البكالوريا العلمي</h3>
+                <button class="back-pill-btn" onclick="closeWatchToChannel()" style="flex-shrink:0;">
+                    <i class="fa-solid fa-arrow-right"></i> القائمة
+                </button>
+            </div>
+
+            <div class="watch-submeta">
+                <span id="watchViewsText">2,480 مشاهدة</span>
+                <span>•</span>
+                <span id="watchTimeText">الآن</span>
+                <span>•</span>
+                <span class="watch-topic-badge" id="watchTopicText">البحث 1: النهايات والاستمرار</span>
+            </div>
+
+            <!-- أزرار التفاعل (إعجاب | تعليقات | حفظ | عرض أفقي) -->
+            <div class="watch-actions-bar">
+                <button class="watch-act-pill" id="watchLikePill" onclick="toggleLikeCurrentVideo()">
+                    <i class="fa-regular fa-thumbs-up"></i>
+                    <span id="watchLikesCounter">315</span>
+                </button>
+
+                <button class="watch-act-pill" onclick="openCommentsSheet()">
+                    <i class="fa-regular fa-comment-dots"></i>
+                    <span>التعليقات (<span id="watchCommentsCounter">2</span>)</span>
+                </button>
+
+                <button class="watch-act-pill" id="watchSavePill" onclick="toggleSaveCurrentVideo()">
+                    <i class="fa-regular fa-bookmark"></i>
+                    <span>حفظ الدرس</span>
+                </button>
+
+                <button class="watch-act-pill" onclick="toggleLandscapeMode()">
+                    <i class="fa-solid fa-mobile-screen-button" style="transform:rotate(90deg);"></i>
+                    <span>ملء الشاشة بالعرض</span>
+                </button>
+            </div>
+
+            <!-- شريط فقرات درس النهايات للانتقال الفوري -->
+            <div class="scenes-strip-box">
+                <div class="scenes-strip-title">
+                    <span><i class="fa-solid fa-list-ol" style="color:var(--rouh-green);"></i> فقرات الدرس (اضغط للانتقال السريع):</span>
+                    <span id="currentSceneNameBadge" style="color:var(--rouh-green);">المقدمة</span>
+                </div>
+                <div class="scenes-chips-row" id="scenesChipsContainer"></div>
+            </div>
+
+            <!-- صندوق التعليقات المصغر -->
+            <div class="yt-comments-box" onclick="openCommentsSheet()">
+                <div class="yt-comments-head">
+                    <span>التعليقات والأسئلة العلمية (<span id="boxCommentsCount">2</span>)</span>
+                    <i class="fa-solid fa-chevron-left" style="font-size:0.75rem; color:var(--text-secondary);"></i>
+                </div>
+                <div class="yt-comments-preview" id="boxLastCommentLine">
+                    <i class="fa-regular fa-comment"></i>
+                    <span>اضغط لعرض التعليقات أو إضافة سؤالك حول هذا البحث...</span>
+                </div>
+            </div>
+
+            <!-- قائمة الدروس التالية في نفس المادة -->
+            <div class="section-head">
+                <h4><i class="fa-solid fa-film" style="color:var(--rouh-green);"></i> دروس أخرى في نفس المادة</h4>
+            </div>
+            <div class="yt-cards-stack" id="upNextVideosStack"></div>
+        </div>
+
+    </section>
+
+    <!-- ==================== الشريط السفلي الأصلي الثابت ==================== -->
+    <nav class="bottom-dock">
+        <button class="dock-btn" id="dock-profile" onclick="triggerGoNav('profile', this)">
+            <i class="fa-solid fa-user"></i>
+            <span>الملف الشخصي</span>
+        </button>
+
+        <button class="dock-btn" id="dock-news" onclick="triggerGoNav('news', this)">
+            <i class="fa-solid fa-newspaper"></i>
+            <span>الأخبار</span>
+        </button>
+
+        <button class="dock-btn center-home-btn" id="dock-home" onclick="triggerGoNav('home', this)">
+            <div class="center-home-orb">
+                <i class="fa-solid fa-house"></i>
+            </div>
+            <span>الرئيسية</span>
+        </button>
+
+        <button class="dock-btn" id="dock-quizzes" onclick="triggerGoNav('quizzes', this)">
+            <i class="fa-solid fa-list-check"></i>
+            <span>الاختبارات</span>
+        </button>
+
+        <button class="dock-btn" id="dock-chat" onclick="triggerGoNav('chat')">
+            <i class="fa-solid fa-comments"></i>
+            <span>الدردشة</span>
+        </button>
+    </nav>
+
+</div>
+
+<!-- النافذة المنبثقة للتعليقات أو رفع درس جديد -->
+<div class="modal-wrap" id="popupModal" onclick="if(event.target===this) closePopup()">
+    <div class="modal-box">
+        <button class="modal-close-x" onclick="closePopup()"><i class="fa-solid fa-xmark"></i></button>
+        <div id="popupBody"></div>
+    </div>
+</div>
+
+<div class="toast-alert" id="toastBox">تم بنجاح!</div>
+
+<script>
+    function triggerGoNav(key) { Rouh.go(key); }
+
+    let currentUser = {
+        name: 'طالب روح',
+        avatar: 'https://i.ibb.co/whHk6hcT/IMG-20261011-WA0031.jpg'
+    };
+
+    function syncUserFromStorage() {
+        currentUser.id = Rouh.me.id;
+        currentUser.name = Rouh.me.full_name;
+        currentUser.avatar = Rouh.avatarOf(Rouh.me);
+        Rouh.applyTheme('themeToggleIcon');
+    }
+
+    /* =========================================================================
+       ★★★ محرك الفيديو السريع لدرس النهايات (خفيف وعالي الأداء بدون تصدير) ★★★
+       ========================================================================= */
+    const PROJECT = {
+        brand: 'فريق روح التعليمي',
+        title: 'درس النهايات — البكالوريا',
+        dir: 'rtl',
+        watermark: true,
+        progressBar: true,
+        transition: 0.4,
+        theme: {
+            bg1: '#122150', bg2: '#0a1230', bg3: '#050a1f', grid: 'rgba(59,130,246,0.07)',
+            text: '#ffffff', muted: '#94a3b8', primary: '#60a5fa', accent: '#f59e0b',
+            danger: '#ef4444', success: '#10b981', card: '#1a2a5c'
+        },
+        scenes: [
+            { name: 'المقدمة', dur: 7, items: [
+                { t: 'text', text: 'درس النهايات', size: 100, weight: 900, anim: 'scale' },
+                { t: 'line' },
+                { t: 'text', text: 'الرياضيات — البكالوريا العلمي', size: 46, color: 'primary', at: .5 },
+            ]},
+            { name: 'مفهوم النهاية', dur: 14, heading: 'مفهوم النهاية عند نقطة', items: [
+                { t: 'text', text: 'سلوك التابع {accent|f(x)} عندما تقترب {primary|x} من عدد معين', size: 46 },
+                { t: 'badges', items: [1.9, 1.99, 2, 2.01, 2.1], on: [2], hlAt: 1.4, box: 'primary', at: .5 },
+                { t: 'math', parts: ['lim f(x) = L    (x → 2)'], size: 58, color: 'accent', at: 2.0 },
+            ]},
+            { name: 'النهايات المثلثية', dur: 18, heading: 'النهايات المثلثية الشهيرة', items: [
+                { t: 'math', parts: ['lim  ', { frac: ['sin(x)', 'x'], color: 'accent' }, '  =  ', { s: '1', color: 'success', bold: true }], size: 64 },
+                { t: 'text', text: 'عندما تسعى x إلى الصفر (بالراديان)', size: 40, color: 'muted', at: 1.3 },
+                { t: 'math', parts: ['lim  ', { frac: ['tan(x)', 'x'], color: 'primary' }, '  =  ', { s: '1', color: 'success', bold: true }], size: 60, at: 2.3 },
+            ]},
+            { name: 'حالات عدم التعيين', dur: 18, heading: 'حالات عدم التعيين الأربع', items: [
+                { t: 'text', text: 'تتطلب {accent|إزالة عدم التعيين} بالتحليل أو المرافق أو العامل المشترك:', size: 42 },
+                { t: 'cards', items: [
+                    { big: '0 / 0', small: 'تحليل أو مرافق', color: 'danger' },
+                    { big: '∞ / ∞', small: 'الحد المسيطر', color: 'accent' }
+                ], at: .6 },
+                { t: 'math', parts: ['∞ − ∞     ,     0 × ∞'], size: 56, color: 'primary', at: 1.8 },
+            ]},
+            { name: 'نهاية تابع كسري', dur: 25, heading: 'نهاية تابع كسري عند اللانهاية', items: [
+                { t: 'math', parts: ['lim ', { frac: ['أكبر حد في البسط', 'أكبر حد في المقام'] }], size: 58 },
+                { t: 'text', text: 'مثال تطبيقي عندما تسعى x إلى +∞ :', size: 40, color: 'muted', at: 1.6 },
+                { t: 'math', parts: ['lim ', { frac: ['6x² + 5x', '2x² − 1'], color: 'accent' }, ' = ', { frac: ['6x²', '2x²'], color: 'primary' }, ' = ', { s: '3', color: 'success', bold: true }], size: 58, at: 2.6 },
+                { t: 'text', text: '⚠ نختصر x² من البسط والمقام فنحصل على النتيجة مباشرة', size: 34, color: 'muted', at: 4.5 },
+            ]},
+            { name: 'إزالة عدم التعيين', dur: 20, heading: 'مثال: إزالة عدم التعيين (0 / 0)', items: [
+                { t: 'math', parts: ['lim ', { frac: ['x² − 9', 'x − 3'], color: 'danger' }, '   (x → 3)'], size: 60 },
+                { t: 'text', text: 'نحلل البسط إلى جداء قوسين (مطابقة تربيعية):', size: 40, color: 'muted', at: 1.4 },
+                { t: 'math', parts: ['lim (x + 3) = 3 + 3 = ', { s: '6', color: 'success', bold: true }], size: 60, at: 2.4 },
+            ]},
+            { name: 'مبرهنة الإحاطة', dur: 18, heading: 'مبرهنة الإحاطة (الحصر)', items: [
+                { t: 'meter', labels: ['g(x)', 'f(x)', 'h(x)'] },
+                { t: 'cards', items: [
+                    { big: 'g → L', small: 'نهاية الطرف الأصغر', color: 'primary' },
+                    { big: 'h → L', small: 'نهاية الطرف الأكبر', color: 'success' }
+                ], at: .5 },
+                { t: 'math', parts: ['g(x) ≤ f(x) ≤ h(x)  ⇒  lim f(x) = L'], size: 50, color: 'accent', at: 1.8 },
+            ]},
+            { name: 'الاستمرار عند نقطة', dur: 17, heading: 'شرط الاستمرار عند نقطة', items: [
+                { t: 'balls', items: [{ c: '#3b82f6', n: 2 }, { c: '#10b981', n: 1 }], hl: 1, hlAt: 1.6, box: true },
+                { t: 'text', text: '{primary|النهاية من اليمين واليسار}  =  {success|صورة النقطة f(a)}', size: 44, at: .7 },
+                { t: 'math', parts: ['lim f(x) = f(a)   (x → a)'], size: 56, color: 'success', at: 1.5 },
+            ]},
+            { name: 'الخلاصة', dur: 18, items: [
+                { t: 'text', text: 'خلاصة النهايات', size: 86, weight: 900, anim: 'scale' },
+                { t: 'line' },
+                { t: 'text', text: 'ابدأ بـ {accent|التعويض المباشر} أولًا،\nوإن ظهرت حالة {danger|عدم تعيين}،\nاستخدم {success|الحد المسيطر أو التحليل أو المرافق}.', size: 46, lh: 1.65, at: .5 },
+                { t: 'text', text: 'بالتوفيق لكم جميعًا 🌟', size: 44, color: 'accent', at: 1.8 },
+            ]},
+        ],
+    };
+
+    const $ = id => document.getElementById(id);
+    const SC = PROJECT.scenes, T = PROJECT.theme;
+    const FONT = 'system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif';
+    const MATH_FONT = 'Georgia, serif';
+    const RTL = true;
+    const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+    const easeOut = x => 1 - Math.pow(1 - x, 3);
+    const easeBack = x => { const c = 2.70158; return 1 + c * Math.pow(x - 1, 3) + 1.70158 * Math.pow(x - 1, 2); };
+    const col = k => (k && T[k]) || k || T.text;
+    const fnt = (sz, w = 700, st = '') => `${st} ${w} ${sz}px ${FONT}`;
+    const fmtT = s => { s = Math.max(0, Math.floor(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+
+    const cv = $('cv'), ctx = cv.getContext('2d');
+    const W = 1280, H = 720;
+    let bgCache = null;
+    const U = () => H / 1080;
+
+    function rr(x, y, w, h, r) {
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(x, y, w, h, r);
+        else ctx.rect(x, y, w, h);
+    }
+
+    function bg() {
+        if (!bgCache) {
+            const c = document.createElement('canvas'); c.width = W; c.height = H;
+            const g = c.getContext('2d');
+            const gr = g.createRadialGradient(W * .5, H * .4, 0, W * .5, H * .4, W * .75);
+            gr.addColorStop(0, T.bg1); gr.addColorStop(.6, T.bg2); gr.addColorStop(1, T.bg3);
+            g.fillStyle = gr; g.fillRect(0, 0, W, H);
+            g.strokeStyle = T.grid; g.lineWidth = 1;
+            const s = 54;
+            for (let x = 0; x <= W; x += s) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke(); }
+            for (let y = 0; y <= H; y += s) { g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); }
+            bgCache = c;
+        }
+        return bgCache;
+    }
+
+    function parseRich(str, defCol) {
+        return str.split('\n').map(par => {
+            const toks = []; const re = /\{(\w+)\|([^}]+)\}|([^{]+)/g; let m;
+            while ((m = re.exec(par))) {
+                const text = m[2] ?? m[3], c = m[1] ? col(m[1]) : defCol;
+                text.split(/\s+/).filter(Boolean).forEach(w => toks.push({ w, c }));
+            }
+            return toks;
+        });
+    }
+
+    const EL = {
+        text: {
+            measure(e, E) {
+                const sz = (e.size || 44) * E.u; ctx.font = fnt(sz, e.weight || 700);
+                const sp = ctx.measureText(' ').width, maxW = W * (e.w || .86), lines = [];
+                parseRich(e.text, col(e.color)).forEach(toks => {
+                    let cur = [], cw = 0;
+                    toks.forEach(tk => {
+                        tk.width = ctx.measureText(tk.w).width;
+                        const add = cur.length ? sp + tk.width : tk.width;
+                        if (cur.length && cw + add > maxW) { lines.push({ toks: cur, w: cw }); cur = [tk]; cw = tk.width; }
+                        else { cur.push(tk); cw += add; }
+                    });
+                    lines.push({ toks: cur, w: cw });
+                });
+                const lh = sz * (e.lh || 1.5);
+                return { w: Math.max(...lines.map(l => l.w)), h: lines.length * lh, lines, sp, sz, lh };
+            },
+            draw(e, E, m) {
+                ctx.font = fnt(m.sz, e.weight || 700); ctx.textBaseline = 'middle'; ctx.direction = 'rtl';
+                m.lines.forEach((l, i) => {
+                    const y = -m.h / 2 + m.lh * (i + .5); let x = l.w / 2;
+                    l.toks.forEach(tk => {
+                        ctx.fillStyle = tk.c; ctx.textAlign = 'right'; ctx.fillText(tk.w, x, y);
+                        x -= (tk.width + m.sp);
+                    });
+                });
+            }
+        },
+        math: {
+            measure(e, E) {
+                const s = (e.size || 56) * E.u;
+                const parts = e.parts.map(p => typeof p === 'string' ? { s: p } : p).map(p => {
+                    if (p.frac) {
+                        const fs = s * .78; ctx.font = fnt(fs, 700);
+                        const nw = ctx.measureText(p.frac[0]).width, dw = ctx.measureText(p.frac[1]).width;
+                        return { ...p, fs, w: Math.max(nw, dw) + s * .36 };
+                    }
+                    const ar = /[\u0600-\u06FF]/.test(p.s);
+                    ctx.font = ar ? fnt(s, 700) : `italic 700 ${s}px ${MATH_FONT}`;
+                    return { ...p, fs: s, ar, w: ctx.measureText(p.s).width };
+                });
+                return { parts, s, w: parts.reduce((a, p) => a + p.w, 0), h: s * (parts.some(p => p.frac) ? 2.5 : 1.45) };
+            },
+            draw(e, E, m) {
+                ctx.textBaseline = 'middle'; ctx.direction = 'ltr';
+                let x = -m.w / 2;
+                m.parts.forEach(p => {
+                    const c = col(p.color || e.color);
+                    ctx.fillStyle = c; ctx.strokeStyle = c;
+                    if (p.frac) {
+                        const cx = x + p.w / 2; ctx.font = fnt(p.fs, 700); ctx.textAlign = 'center';
+                        ctx.fillText(p.frac[0], cx, -p.fs * .62); ctx.fillText(p.frac[1], cx, p.fs * .7);
+                        ctx.lineWidth = Math.max(2, m.s * .055);
+                        ctx.beginPath(); ctx.moveTo(x + m.s * .1, 0); ctx.lineTo(x + p.w - m.s * .1, 0); ctx.stroke();
+                    } else {
+                        ctx.font = p.ar ? fnt(m.s, 700) : `italic 700 ${m.s}px ${MATH_FONT}`;
+                        ctx.textAlign = 'left'; ctx.fillText(p.s, x, 0);
+                    }
+                    x += p.w;
+                });
+            }
+        },
+        badges: {
+            measure(e, E) {
+                const n = e.items.length; let size = (e.size || 110) * E.u, gap = size * .18;
+                return { w: n * size + (n - 1) * gap, h: size * 1.2, size, gap };
+            },
+            draw(e, E, m, t) {
+                const hlAt = e.hlAt ?? 1.2, hp = easeOut(clamp((t - hlAt) / .5));
+                e.items.forEach((it, i) => {
+                    const p = easeBack(clamp((t - .12 * i) / .45)); if (p <= 0) return;
+                    const on = e.on && e.on.includes(it);
+                    const cx = -m.w / 2 + m.size / 2 + i * (m.size + m.gap);
+                    ctx.save(); ctx.translate(cx, 0);
+                    ctx.scale(p * (on ? 1 + .1 * hp : 1), p * (on ? 1 + .1 * hp : 1));
+                    ctx.fillStyle = on && hp > .5 ? T.accent : T.card; rr(-m.size / 2, -m.size / 2, m.size, m.size, m.size * .18); ctx.fill();
+                    ctx.fillStyle = on && hp > .5 ? '#0a1230' : T.text; ctx.font = fnt(m.size * .38, 800); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.direction = 'ltr';
+                    ctx.fillText(String(it), 0, 0);
+                    ctx.restore();
+                });
+            }
+        },
+        balls: {
+            measure(e, E) {
+                const size = (e.size || 96) * E.u, gap = size * .3;
+                const all = []; e.items.forEach((g, gi) => { for (let k = 0; k < g.n; k++) all.push({ c: g.c, gi }); });
+                return { all, size, gap, w: all.length * (size + gap) - gap, h: size };
+            },
+            draw(e, E, m, t) {
+                m.all.forEach((b, i) => {
+                    const x = -m.w / 2 + m.size / 2 + i * (m.size + m.gap);
+                    const p = easeBack(clamp((t - .1 * i) / .45)); if (p <= 0) return;
+                    ctx.save(); ctx.translate(x, 0);
+                    ctx.fillStyle = b.c; ctx.beginPath(); ctx.arc(0, 0, (m.size / 2) * p, 0, Math.PI * 2); ctx.fill();
+                    ctx.restore();
+                });
+            }
+        },
+        meter: {
+            measure(e, E) { return { w: W * .78, h: 110 * E.u }; },
+            draw(e, E, m, t) {
+                const w = m.w, u = E.u, y = -12 * u;
+                ctx.fillStyle = 'rgba(255,255,255,.15)'; rr(-w / 2, y - 6 * u, w, 12 * u, 6 * u); ctx.fill();
+                const p = easeOut(clamp((t - .2) / 1.5));
+                if (p > 0) {
+                    ctx.fillStyle = T.accent; rr(-w / 2, y - 6 * u, w * p, 12 * u, 6 * u); ctx.fill();
+                }
+                const L = e.labels || ['g(x)', 'f(x)', 'h(x)'];
+                ctx.font = `italic 700 ${38 * u}px ${MATH_FONT}`; ctx.fillStyle = T.text; ctx.textBaseline = 'middle'; ctx.direction = 'ltr';
+                L.forEach((s, i) => { ctx.textAlign = i === 0 ? 'left' : i === L.length - 1 ? 'right' : 'center'; ctx.fillText(s, -w / 2 + w * i / (L.length - 1), y + 44 * u); });
+            }
+        },
+        cards: {
+            measure(e, E) { return { w: W * .82, h: 160 * E.u }; },
+            draw(e, E, m, t) {
+                const n = e.items.length, u = E.u, gap = 22 * u, cw = (m.w - gap * (n - 1)) / n;
+                e.items.forEach((it, i) => {
+                    const p = clamp((t - i * .3) / .5); if (p <= 0) return;
+                    const x = m.w / 2 - cw / 2 - i * (cw + gap), c = col(it.color);
+                    ctx.save(); ctx.translate(x, 0); ctx.globalAlpha *= p;
+                    ctx.strokeStyle = c; ctx.lineWidth = 2.5 * u; rr(-cw / 2, -m.h / 2, cw, m.h, 18 * u); ctx.stroke();
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.direction = 'ltr';
+                    ctx.fillStyle = c; ctx.font = `italic 700 ${48 * u}px ${MATH_FONT}`; ctx.fillText(it.big, 0, -22 * u);
+                    ctx.fillStyle = T.text; ctx.direction = 'rtl'; ctx.font = fnt(30 * u, 700); ctx.fillText(it.small, 0, 28 * u);
+                    ctx.restore();
+                });
+            }
+        },
+        line: {
+            measure(e, E) { return { w: W * .3, h: 18 * E.u }; },
+            draw(e, E, m) {
+                ctx.fillStyle = T.accent; ctx.fillRect(-m.w / 2, -2 * E.u, m.w, 4 * E.u);
+            }
+        }
+    };
+
+    function animState(e, lt) {
+        const r = clamp(lt / (e.animDur || .55)), a = e.anim || 'up';
+        if (a === 'scale') return { al: clamp(r * 2), dy: 0, sc: .7 + .3 * easeBack(r) };
+        return { al: easeOut(r), dy: (1 - easeOut(r)) * 26, sc: 1 };
+    }
+
+    let starts = [], durs = [], total = 155;
+    function layoutScenes() {
+        let acc = 0; starts = []; durs = [];
+        SC.forEach(s => { starts.push(acc); durs.push(s.dur); acc += s.dur; });
+        total = acc;
+        if ($('tTotal')) $('tTotal').textContent = fmtT(total);
+    }
+
+    const sceneIndex = t => {
+        for (let i = 0; i < SC.length; i++) if (t < starts[i] + durs[i]) return i;
+        return SC.length - 1;
+    };
+
+    function draw(t) {
+        const u0 = U();
+        ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1;
+        ctx.drawImage(bg(), 0, 0);
+        const i = sceneIndex(t), sc = SC[i], ts = t - starts[i], d = durs[i], tr = PROJECT.transition;
+        const fade = Math.min(i === 0 ? 1 : clamp(ts / tr), i === SC.length - 1 ? 1 : clamp((d - ts) / tr));
+        const E = { u: u0 };
+        let areaTop = H * .06, areaBot = H * .93;
+
+        if (sc.heading) {
+            const he = { text: sc.heading, size: 68, weight: 800, w: .9 }, hm = EL.text.measure(he, E);
+            ctx.save(); ctx.globalAlpha = fade; ctx.translate(W / 2, H * .07 + hm.h / 2); EL.text.draw(he, E, hm); ctx.restore();
+            areaTop = H * .22;
+        }
+
+        const items = sc.items || [], area = areaBot - areaTop;
+        let ms = items.map(e => { const m = EL[e.t].measure(e, E), pad = e.box ? 24 * E.u : 0; return { m, pad, h: m.h + pad * 2 }; });
+        let gap = 28 * E.u;
+        let stackH = ms.reduce((a, o) => a + o.h, 0) + gap * Math.max(0, ms.length - 1);
+        if (stackH > area) { E.u *= area / stackH; ms = items.map(e => { const m = EL[e.t].measure(e, E), pad = e.box ? 24 * E.u : 0; return { m, pad, h: m.h + pad * 2 }; }); stackH = ms.reduce((a, o) => a + o.h, 0) + gap * Math.max(0, ms.length - 1); }
+
+        let y = areaTop + (area - stackH) / 2;
+        items.forEach((e, k) => {
+            const o = ms[k], cy = y + o.h / 2;
+            y += o.h + gap;
+            const lt = ts - (e.at ?? k * .3); if (lt < 0) return;
+            const a = animState(e, lt);
+            ctx.save(); ctx.globalAlpha = fade * a.al; ctx.translate(W / 2, cy + a.dy * E.u); ctx.scale(a.sc, a.sc);
+            EL[e.t].draw(e, E, o.m, lt);
+            ctx.restore();
+        });
+
+        ctx.globalAlpha = 1;
+        const p = clamp(t / total), bh = 5 * u0;
+        ctx.fillStyle = 'rgba(255,255,255,.1)'; ctx.fillRect(0, H - bh, W, bh);
+        ctx.fillStyle = T.accent; ctx.fillRect(W - W * p, H - bh, W * p, bh);
+    }
+
+    // ==================== التحكم بالخط الزمني والتشغيل السريع ====================
+    let playing = false, base = 0, clockStart = 0, raf = 0;
+    let playbackSpeed = 1;
+    let controlsHideTimeout = null;
+
+    function nowTime() {
+        if (playing) return base + ((performance.now() - clockStart) / 1000) * playbackSpeed;
+        return base;
+    }
+
+    function updatePlayIconsUI() {
+        const btn = $('playPauseIconBtn');
+        if (btn) btn.innerHTML = `<i class="fa-solid ${playing ? 'fa-pause' : 'fa-play'}"></i>`;
+        $('bigPlay').classList.toggle('hide', playing);
+    }
+
+    function renderFrameAt(t) {
+        t = clamp(t, 0, total - .001);
+        draw(t);
+        const p = clamp(t / total) * 100;
+        if ($('ytTimelineSlider')) $('ytTimelineSlider').value = p;
+        if ($('tNow')) $('tNow').textContent = fmtT(t);
+
+        const curIdx = sceneIndex(t);
+        if ($('currentSceneNameBadge') && SC[curIdx]) {
+            $('currentSceneNameBadge').textContent = SC[curIdx].name;
+        }
+        document.querySelectorAll('.scene-jump-chip').forEach((ch, idx) => {
+            ch.classList.toggle('active', idx === curIdx);
+        });
+    }
+
+    function engineLoop() {
+        if (!playing) return;
+        const t = nowTime();
+        renderFrameAt(t);
+        if (t >= total) {
+            playing = false;
+            base = total;
+            cancelAnimationFrame(raf);
+            updatePlayIconsUI();
+            return;
+        }
+        raf = requestAnimationFrame(engineLoop);
+    }
+
+    function playEngine() {
+        if (nowTime() >= total - .05) base = 0;
+        else base = nowTime();
+        clockStart = performance.now();
+        playing = true;
+        updatePlayIconsUI();
+        cancelAnimationFrame(raf);
+        engineLoop();
+        showControlsTemporarily();
+    }
+
+    function pauseEngine() {
+        base = nowTime();
+        playing = false;
+        cancelAnimationFrame(raf);
+        updatePlayIconsUI();
+        renderFrameAt(base);
+    }
+
+    function toggleEnginePlay() {
+        if ($('ytPlayerBox').classList.contains('drive-mode')) return;
+        const vidEl = $('lessonVideoEl');
+        if (currentPlayingVideo && currentPlayingVideo.videoUrl && vidEl.style.display !== 'none') {
+            if (vidEl.paused) { vidEl.play(); playing = true; }
+            else { vidEl.pause(); playing = false; }
+            updatePlayIconsUI();
+            return;
+        }
+        playing ? pauseEngine() : playEngine();
+    }
+
+    function seekEngineTo(t) {
+        t = clamp(t, 0, total - .01);
+        base = t;
+        clockStart = performance.now();
+        renderFrameAt(t);
+    }
+
+    function scrubVideoTimeline(val) {
+        seekEngineTo((parseFloat(val) / 100) * total);
+        showControlsTemporarily();
+    }
+
+    function cycleVideoSpeed() {
+        const speeds = [1, 1.25, 1.5, 2];
+        base = nowTime();
+        clockStart = performance.now();
+        playbackSpeed = speeds[(speeds.indexOf(playbackSpeed) + 1) % speeds.length];
+        $('speedBtnTxt').innerText = playbackSpeed + 'x';
+        showToast(`سرعة العرض: ${playbackSpeed}x ⚡`);
+    }
+
+    function renderSceneJumpChips() {
+        const box = $('scenesChipsContainer');
+        if (!box) return;
+        box.innerHTML = SC.map((s, idx) => `
+            <button class="scene-jump-chip ${idx === 0 ? 'active' : ''}" onclick="seekEngineTo(${starts[idx] + 0.02})">
+                ${idx + 1}. ${s.name}
+            </button>
+        `).join('');
+    }
+
+    // ==================== قاعدة بيانات المواد والأبحاث ====================
+    const subjectsCatalog = {
+        sci: [
+            { id: 'sci_math', name: 'الرياضيات', icon: 'fa-square-root-variable', accent: '#3b82f6', soft: 'rgba(59,130,246,0.14)', grad: 'linear-gradient(135deg,#60a5fa,#2563eb)', topics: ['البحث 1: النهايات والاستمرار', 'البحث 2: الاشتقاق وتطبيقاته', 'البحث 3: المتتاليات العددية', 'البحث 4: التابع اللوغاريتمي والأسي', 'البحث 5: الأعداد العقدية', 'البحث 6: التحليل التوافقي والاحتمالات'] },
+            { id: 'sci_phys', name: 'الفيزياء', icon: 'fa-atom', accent: '#8b5cf6', soft: 'rgba(139,92,246,0.14)', grad: 'linear-gradient(135deg,#a78bfa,#7c3aed)', topics: ['البحث 1: النواس المرن', 'البحث 2: النواس الفتلي والثقلي', 'البحث 3: ميكانيك السوائل', 'البحث 4: المغناطيسية والتحريض', 'البحث 5: التيار المتناوب الجيبي', 'البحث 6: الأمواج والإلكترونيات'] },
+            { id: 'sci_chem', name: 'الكيمياء', icon: 'fa-flask', accent: '#06b6d4', soft: 'rgba(6,182,212,0.14)', grad: 'linear-gradient(135deg,#22d3ee,#0891b2)', topics: ['البحث 1: الكيمياء النووية', 'البحث 2: الغازات والكيمياء الحرارية', 'البحث 3: سرعة التفاعل والتوازن', 'البحث 4: الحموض والأسس والأملاح', 'البحث 5: الكيمياء العضوية'] },
+            { id: 'sci_bio', name: 'علم الأحياء', icon: 'fa-dna', accent: '#10b981', soft: 'rgba(16,185,129,0.14)', grad: 'linear-gradient(135deg,#34d399,#059669)', topics: ['البحث 1: التنسيق العصبي', 'البحث 2: المستقبلات الحسية', 'البحث 3: التنسيق الهرموني', 'البحث 4: التكاثر عند الأحياء', 'البحث 5: الوراثة المندلية والبشرية'] },
+            { id: 'sci_arab', name: 'اللغة العربية', icon: 'fa-feather-pointed', accent: '#f97316', soft: 'rgba(249,115,22,0.14)', grad: 'linear-gradient(135deg,#fb923c,#ea580c)', topics: ['البحث 1: الأدب والقضايا الوطنية', 'البحث 2: الأدب الوجداني والاجتماعي', 'البحث 3: القواعد والنحو والإعراب', 'البحث 4: البلاغة والمحسنات'] },
+            { id: 'sci_eng', name: 'اللغة الإنكليزية', icon: 'fa-language', accent: '#f43f5e', soft: 'rgba(244,63,94,0.14)', grad: 'linear-gradient(135deg,#fb7185,#e11d48)', topics: ['البحث 1: الأزمنة Tenses', 'البحث 2: المبني للمجهول Passive', 'البحث 3: الكلام المنقول Reported', 'البحث 4: النصوص والمواضيع'] },
+            { id: 'sci_fr', name: 'اللغة الفرنسية', icon: 'fa-spell-check', accent: '#6366f1', soft: 'rgba(99,102,241,0.14)', grad: 'linear-gradient(135deg,#818cf8,#4f46e5)', topics: ['البحث 1: القواعد والأزمنة', 'البحث 2: الضمائر والربط', 'البحث 3: شرح النصوص والمواضيع'] },
+            { id: 'sci_nat', name: 'التربية الوطنية', icon: 'fa-flag', accent: '#10b981', soft: 'rgba(16,185,129,0.14)', grad: 'linear-gradient(135deg,#2dd4bf,#0d9488)', topics: ['البحث 1: المواطنة والدستور', 'البحث 2: التنمية والعلاقات الدولية'] },
+            { id: 'sci_rel', name: 'التربية الدينية', icon: 'fa-mosque', accent: '#f59e0b', soft: 'rgba(245,158,11,0.14)', grad: 'linear-gradient(135deg,#fbbf24,#d97706)', topics: ['البحث 1: القرآن الكريم والتجويد', 'البحث 2: الحديث الشريف والعقيدة', 'البحث 3: الفقه والأحكام'] }
+        ],
+        lit: [
+            { id: 'lit_arab', name: 'اللغة العربية', icon: 'fa-feather-pointed', accent: '#10b981', soft: 'rgba(16,185,129,0.14)', grad: 'linear-gradient(135deg,#34d399,#059669)', topics: ['البحث 1: الشعر القومي والوطني', 'البحث 2: المذهب الواقعي والابتداعي', 'البحث 3: القواعد والنحو الشامل', 'البحث 4: العروض والبلاغة'] },
+            { id: 'lit_phil', name: 'الفلسفة', icon: 'fa-brain', accent: '#8b5cf6', soft: 'rgba(139,92,246,0.14)', grad: 'linear-gradient(135deg,#a78bfa,#7c3aed)', topics: ['البحث 1: نظرية المعرفة', 'البحث 2: الأخلاق والقيم', 'البحث 3: الفلسفة الحديثة والمعاصرة', 'البحث 4: المنطق وكتابة المقالة'] },
+            { id: 'lit_hist', name: 'التاريخ', icon: 'fa-scroll', accent: '#f97316', soft: 'rgba(249,115,22,0.14)', grad: 'linear-gradient(135deg,#fb923c,#ea580c)', topics: ['البحث 1: تاريخ سوريا الحديث', 'البحث 2: حركات التحرر العربية', 'البحث 3: القضية الفلسطينية'] },
+            { id: 'lit_geo', name: 'الجغرافيا', icon: 'fa-earth-asia', accent: '#3b82f6', soft: 'rgba(59,130,246,0.14)', grad: 'linear-gradient(135deg,#60a5fa,#2563eb)', topics: ['البحث 1: الجغرافيا الطبيعية والمناخ', 'البحث 2: الجغرافيا البشرية والسكان', 'البحث 3: الموارد الاقتصادية'] },
+            { id: 'lit_eng', name: 'اللغة الإنكليزية', icon: 'fa-language', accent: '#f43f5e', soft: 'rgba(244,63,94,0.14)', grad: 'linear-gradient(135deg,#fb7185,#e11d48)', topics: ['البحث 1: القواعد الشاملة', 'البحث 2: نصوص الكتاب والمفردات'] },
+            { id: 'lit_fr', name: 'اللغة الفرنسية', icon: 'fa-spell-check', accent: '#6366f1', soft: 'rgba(99,102,241,0.14)', grad: 'linear-gradient(135deg,#818cf8,#4f46e5)', topics: ['البحث 1: قواعد اللغة الفرنسية', 'البحث 2: النصوص والتعبير الكتابي'] },
+            { id: 'lit_nat', name: 'التربية الوطنية', icon: 'fa-flag', accent: '#06b6d4', soft: 'rgba(6,182,212,0.14)', grad: 'linear-gradient(135deg,#2dd4bf,#0d9488)', topics: ['البحث 1: المؤسسات الدستورية', 'البحث 2: قضايا المجتمع المعاصر'] },
+            { id: 'lit_rel', name: 'التربية الدينية', icon: 'fa-mosque', accent: '#f59e0b', soft: 'rgba(245,158,11,0.14)', grad: 'linear-gradient(135deg,#fbbf24,#d97706)', topics: ['البحث 1: التلاوة والتفسير', 'البحث 2: الأحكام والأخلاق الإسلامية'] }
+        ],
+        ninth: [
+            { id: 'n9_math', name: 'الرياضيات', icon: 'fa-compass-drafting', accent: '#3b82f6', soft: 'rgba(59,130,246,0.14)', grad: 'linear-gradient(135deg,#60a5fa,#2563eb)', topics: ['البحث 1: الأعداد والكسور والجذور', 'البحث 2: المعادلات والمتراجحات', 'البحث 3: التوابع والإحصاء', 'البحث 4: مبرهنة تالس والمثلثات', 'البحث 5: الدائرة والرباعي الدائري'] },
+            { id: 'n9_sci', name: 'العلوم العامة', icon: 'fa-microscope', accent: '#10b981', soft: 'rgba(16,185,129,0.14)', grad: 'linear-gradient(135deg,#34d399,#059669)', topics: ['البحث 1: الجهاز الدعامي والحركي', 'البحث 2: الجهاز العصبي والحواس', 'البحث 3: الهضم والدوران والتنفس', 'البحث 4: التكاثر والوراثة والبيئة'] },
+            { id: 'n9_phys', name: 'الفيزياء والكيمياء', icon: 'fa-bolt', accent: '#06b6d4', soft: 'rgba(6,182,212,0.14)', grad: 'linear-gradient(135deg,#22d3ee,#0891b2)', topics: ['البحث 1: الحقل المغناطيسي والكهرباء', 'البحث 2: عزم القوة والتوازن الميكانيكي', 'البحث 3: المحاليل المائية والحموض', 'البحث 4: التفاعلات والكيمياء العضوية'] },
+            { id: 'n9_arab', name: 'اللغة العربية', icon: 'fa-book-open', accent: '#8b5cf6', soft: 'rgba(139,92,246,0.14)', grad: 'linear-gradient(135deg,#a78bfa,#7c3aed)', topics: ['البحث 1: شرح وإعراب القصائد', 'البحث 2: المشتقات والتوابع والمنصوبات', 'البحث 3: الإملاء والهمزات والمعاجم'] },
+            { id: 'n9_soc', name: 'الاجتماعيات', icon: 'fa-globe', accent: '#f97316', soft: 'rgba(249,115,22,0.14)', grad: 'linear-gradient(135deg,#fb923c,#ea580c)', topics: ['البحث 1: جغرافية سوريا والوطن العربي', 'البحث 2: التاريخ الحديث والمعاصر', 'البحث 3: التربية الوطنية'] },
+            { id: 'n9_eng', name: 'اللغة الإنكليزية', icon: 'fa-language', accent: '#f43f5e', soft: 'rgba(244,63,94,0.14)', grad: 'linear-gradient(135deg,#fb7185,#e11d48)', topics: ['البحث 1: القواعد والأزمنة الأساسية', 'البحث 2: النصوص وتشكيل السؤال'] },
+            { id: 'n9_fr', name: 'اللغة الفرنسية', icon: 'fa-spell-check', accent: '#6366f1', soft: 'rgba(99,102,241,0.14)', grad: 'linear-gradient(135deg,#818cf8,#4f46e5)', topics: ['البحث 1: قواعد الصف التاسع', 'البحث 2: النصوص والمفردات'] },
+            { id: 'n9_rel', name: 'التربية الدينية', icon: 'fa-mosque', accent: '#f59e0b', soft: 'rgba(245,158,11,0.14)', grad: 'linear-gradient(135deg,#fbbf24,#d97706)', topics: ['البحث 1: التجويد وسور القرآن', 'البحث 2: العقيدة والعبادات'] }
+        ]
+    };
+
+    let customLessonsStore = {};  // subjectId -> فيديوهات مرفوعة (جدول lesson_videos)
+    let statsCache = {};          // videoId -> {views, likes, liked, saved, commentCount}
+
+    function getVideosForSubject(subObj) {
+        const st = id => statsCache[id] || { views: 0, likes: 0, liked: false, saved: false, commentCount: 0 };
+        const storedList = (customLessonsStore[subObj.id] || []).map(v => ({ ...v, ...st(v.id), comments: [] }));
+        const defaultList = subObj.topics.map((topicName, idx) => {
+            const vidId = `${subObj.id}_def_${idx}`;
+            const isLimitsLesson = (subObj.id === 'sci_math' && idx === 0);
+            return {
+                id: vidId,
+                subjectId: subObj.id,
+                subjectName: subObj.name,
+                topic: topicName,
+                title: isLimitsLesson
+                    ? 'درس النهايات — الشرح التفاعلي الكامل مع القوانين والأمثلة'
+                    : `الشرح الشامل وحل المسائل والتدريبات - ${topicName}`,
+                teacher: 'منصة فريق روح التعليمي',
+                duration: '02:35',
+                timeAgo: idx === 0 ? 'منذ يومين' : `منذ ${idx + 2} أيام`,
+                grad: isLimitsLesson ? 'linear-gradient(135deg, #122150, #2563eb)' : subObj.grad,
+                videoUrl: '',
+                ...st(vidId),
+                comments: []
+            };
+        });
+        return [...storedList, ...defaultList];
+    }
+
+    async function loadCustomLessons() {
+        const { data } = await Rouh.sb.from('lesson_videos').select('*').order('created_at', { ascending: false });
+        customLessonsStore = {};
+        (data || []).forEach(r => {
+            (customLessonsStore[r.subject_id] = customLessonsStore[r.subject_id] || []).push({
+                id: r.id, subjectId: r.subject_id, subjectName: r.subject_name, topic: r.topic, title: r.title,
+                teacher: r.teacher, duration: r.duration, timeAgo: Rouh.timeAgo(r.created_at),
+                grad: r.grad || 'linear-gradient(135deg,#063811,#159934)', videoUrl: Rouh.safeUrl(r.video_url)
+            });
+        });
+    }
+
+    async function hydrateStats(videos) {
+        const ids = videos.map(v => v.id);
+        if (!ids.length) return;
+        const { data } = await Rouh.sb.rpc('video_stats', { p_ids: ids });
+        (data || []).forEach(r => {
+            statsCache[r.video_id] = { views: Number(r.views), likes: Number(r.likes), liked: r.liked, saved: r.saved, commentCount: Number(r.comments) };
+        });
+    }
+
+    function syncStat(v) {
+        statsCache[v.id] = { views: v.views, likes: v.likes, liked: v.liked, saved: v.saved, commentCount: v.commentCount };
+    }
+
+    async function fetchVideoComments(id) {
+        const { data } = await Rouh.sb.from('video_comments')
+            .select('id,body,created_at,author:profiles!video_comments_user_id_fkey(full_name,avatar_url)')
+            .eq('video_id', id).order('created_at', { ascending: true }).limit(200);
+        return (data || []).map(c => ({
+            user: (c.author && c.author.full_name) || 'طالب', avatar: Rouh.avatarOf(c.author),
+            text: c.body, time: Rouh.timeAgo(c.created_at)
+        }));
+    }
+
+        // ==================== التنقل الفوري بين الصفحات ====================
+    let activeStageKey = 'sci';
+    let activeSubjectObj = subjectsCatalog.sci[0];
+    let selectedTopicFilter = 'all';
+    let currentPlayingVideo = null;
+    let channelReturnPageId = 'page-stages';
+
+    function switchLessonPage(pageId) {
+        if (pageId !== 'page-watch') {
+            pauseEngine();
+            exitLandscapeMode();
+        }
+        document.querySelectorAll('.app-page').forEach(p => p.classList.remove('active'));
+        const target = $(pageId);
+        if (target) target.classList.add('active');
+        window.scrollTo(0, 0);
+    }
+
+    function playLimitsDemoDirectly() {
+        activeStageKey = 'sci';
+        activeSubjectObj = subjectsCatalog.sci[0];
+        channelReturnPageId = 'page-stages';
+        openWatchPlayer('sci_math_def_0');
+    }
+
+    function openBacPage() {
+        switchLessonPage('page-bac');
+        selectBacBranch('sci');
+    }
+
+    function openNinthPage() {
+        activeStageKey = 'ninth';
+        switchLessonPage('page-ninth');
+        renderOriginalSubjectCards('ninth', 'ninthSubjectsGrid', 'page-ninth');
+    }
+
+    function selectBacBranch(branchKey) {
+        activeStageKey = branchKey;
+        $('branchBox-sci').classList.toggle('selected', branchKey === 'sci');
+        $('branchBox-lit').classList.toggle('selected', branchKey === 'lit');$('bacSubTitleText').innerHTML = `<i class="fa-solid fa-video" style="color:var(--rouh-green);"></i> مواد ${branchKey === 'sci' ? 'البكالوريا العلمي' : 'البكالوريا الأدبي'}:`;
+        renderOriginalSubjectCards(branchKey, 'bacSubjectsGrid', 'page-bac');
+    }
+
+    function renderOriginalSubjectCards(stageKey, gridId, returnPageId) {
+        const list = subjectsCatalog[stageKey] || [];
+        const grid = $(gridId);
+        grid.innerHTML = list.map((sub, idx) => `
+            <div class="glow-book-card" style="--card-accent:${sub.accent}; --card-soft:${sub.soft};" onclick="openSubjectChannel('${stageKey}', ${idx}, '${returnPageId}')">
+                <div>
+                    <div class="book-top-bar">
+                        <div class="book-icon-bubble"><i class="fa-solid ${sub.icon}"></i></div>
+                        <span class="book-badge"><i class="fa-solid fa-play"></i> فيديو</span>
+                    </div>
+                    <h5>${sub.name}</h5>
+                    <p>${sub.topics.length} أبحاث مصورة</p>
+                </div>
+                <div class="book-bottom-action">
+                    <span>مشاهدة الشروحات</span>
+                    <i class="fa-solid fa-arrow-left"></i>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    async function openSubjectChannel(stageKey, subIdx, returnPage) {
+        activeStageKey = stageKey;
+        activeSubjectObj = subjectsCatalog[stageKey][subIdx];
+        channelReturnPageId = returnPage;
+        selectedTopicFilter = 'all';
+
+        $('channelHeaderName').innerHTML = `<i class="fa-solid fa-circle-play" style="color:var(--rouh-green);"></i> شروحات ${Rouh.esc(activeSubjectObj.name)}`;
+        $('channelReturnBtn').setAttribute('onclick', `switchLessonPage('${channelReturnPageId}')`);
+        $('lessonSearchInp').value = '';
+
+        await hydrateStats(getVideosForSubject(activeSubjectObj));
+        renderTopicsFilterBar();
+        renderChannelVideosList();
+        switchLessonPage('page-channel');
+    }
+
+    function renderTopicsFilterBar() {
+        const bar = $('topicsFilterStrip');
+        const allBtn = `<button class="topic-pill ${selectedTopicFilter === 'all' ? 'active' : ''}" onclick="selectTopicPill('all')">كل الأبحاث (${activeSubjectObj.topics.length})</button>`;
+        const pills = activeSubjectObj.topics.map(t => `
+            <button class="topic-pill ${selectedTopicFilter === t ? 'active' : ''}" onclick="selectTopicPill('${t}')">${t}</button>
+        `).join('');
+        bar.innerHTML = allBtn + pills;
+    }
+
+    function selectTopicPill(topicName) {
+        selectedTopicFilter = topicName;
+        renderTopicsFilterBar();
+        renderChannelVideosList();
+    }
+
+    function renderChannelVideosList() {
+        if (!activeSubjectObj) return;
+        const query = ($('lessonSearchInp')?.value || '').trim().toLowerCase();
+        const vids = getVideosForSubject(activeSubjectObj).filter(v => {
+            if (selectedTopicFilter !== 'all' && v.topic !== selectedTopicFilter) return false;
+            if (query && !v.title.toLowerCase().includes(query) && !v.topic.toLowerCase().includes(query)) return false;
+            return true;
+        });
+
+        const stack = $('channelVideosStack');
+        if (!vids.length) {
+            stack.innerHTML = `
+                <div style="background:var(--bg-card); border:1px solid var(--border-light); border-radius:18px; padding:26px 14px; text-align:center;">
+                    <i class="fa-solid fa-video-slash" style="font-size:1.8rem; color:var(--text-secondary); margin-bottom:8px;"></i>
+                    <h4 style="font-size:0.86rem; margin-bottom:4px;">لا توجد شروحات مطابقة للبحث</h4>
+                    <p style="font-size:0.74rem; color:var(--text-secondary);">جرب اختيار بحث آخر أو اضغط على زر (رفع درس).</p>
+                </div>
+            `;
+            return;
+        }
+        stack.innerHTML = vids.map(v => buildYouTubeVideoCard(v)).join('');
+    }
+
+    function buildYouTubeVideoCard(v) {
+        const e = Rouh.esc;
+        return `
+            <article class="yt-card" onclick="openWatchPlayer('${e(v.id)}')">
+                <div class="yt-thumb" style="--thumb-grad:${e(v.grad)};">
+                    <span class="yt-thumb-topic"><i class="fa-solid fa-folder-open"></i> ${e(v.topic)}</span>
+                    <div class="yt-play-ico"><i class="fa-solid fa-play"></i></div>
+                    <div class="yt-thumb-title">${e(v.title)}</div>
+                    <span class="yt-duration">${e(v.duration)}</span>
+                </div>
+                <div class="yt-card-body">
+                    <img src="${e(Rouh.DEFAULT_AVATAR)}" alt="فريق روح">
+                    <div class="yt-card-info">
+                        <h4>${e(v.title)}</h4>
+                        <div class="yt-card-meta">
+                            <span>${e(v.teacher)}</span>
+                            <span>•</span>
+                            <span>${v.views.toLocaleString()} مشاهدة</span>
+                            <span>•</span>
+                            <span>${e(v.timeAgo)}</span>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        `;
+    }
+
+    // ==================== تشغيل الفيديو ====================
+    async function openWatchPlayer(videoId) {
+        if (!activeSubjectObj) activeSubjectObj = subjectsCatalog.sci[0];
+        const allVids = getVideosForSubject(activeSubjectObj);
+        const target = allVids.find(v => v.id === videoId) || allVids[0];
+
+        currentPlayingVideo = target;
+        currentPlayingVideo.views += 1;
+        syncStat(currentPlayingVideo);
+        Rouh.sb.rpc('increment_video_views', { p_video: target.id });
+        currentPlayingVideo.comments = await fetchVideoComments(target.id);
+        currentPlayingVideo.commentCount = currentPlayingVideo.comments.length;
+
+        SC[0].items[0].text = target.id === 'sci_math_def_0' ? 'درس النهايات' : target.topic;
+        SC[0].items[2].text = `${target.subjectName} — فريق روح التعليمي`;
+        layoutScenes();
+        renderSceneJumpChips();
+
+        playbackSpeed = 1;
+        $('speedBtnTxt').innerText = '1x';
+
+        const vidEl = $('lessonVideoEl');
+        const driveVid = Rouh.driveInfo(currentPlayingVideo.videoUrl);
+        const frame = $('driveFrame');
+        if (driveVid) {
+            // فيديو من Google Drive: يُعرض داخل مشغل Drive الرسمي
+            vidEl.pause();
+            vidEl.style.display = 'none';
+            cv.style.display = 'none';
+            $('ytPlayerBox').classList.add('drive-mode');
+            frame.style.display = 'block';
+            frame.src = driveVid.preview;
+            playing = false;
+        } else if (currentPlayingVideo.videoUrl) {
+            $('ytPlayerBox').classList.remove('drive-mode'); frame.style.display = 'none'; frame.src = 'about:blank';
+            cv.style.display = 'none';
+            vidEl.style.display = 'block';
+            vidEl.src = currentPlayingVideo.videoUrl;
+            vidEl.play().catch(() => {});
+            playing = true;
+            updatePlayIconsUI();
+        } else {
+            $('ytPlayerBox').classList.remove('drive-mode'); frame.style.display = 'none'; frame.src = 'about:blank';
+            vidEl.pause();
+            vidEl.style.display = 'none';
+            cv.style.display = 'block';
+            seekEngineTo(0);
+            playEngine();
+        }
+
+        renderWatchPageDetails();
+        switchLessonPage('page-watch');
+    }
+
+    function closeWatchToChannel() {
+        pauseEngine();
+        exitLandscapeMode();
+        const fr = $('driveFrame');
+        if (fr) { fr.src = 'about:blank'; fr.style.display = 'none'; }
+        $('ytPlayerBox').classList.remove('drive-mode');
+        if (channelReturnPageId === 'page-stages') {
+            switchLessonPage('page-stages');
+        } else {
+            renderChannelVideosList();
+            switchLessonPage('page-channel');
+        }
+    }
+
+    function renderWatchPageDetails() {
+        const v = currentPlayingVideo;
+        $('watchTitleText').innerText = v.title;
+        $('watchViewsText').innerText = `${v.views.toLocaleString()} مشاهدة`;
+        $('watchTimeText').innerText = v.timeAgo;
+        $('watchTopicText').innerText = v.topic;
+
+        const likePill = $('watchLikePill');
+        likePill.classList.toggle('liked', v.liked);
+        likePill.querySelector('i').className = v.liked ? 'fa-solid fa-thumbs-up' : 'fa-regular fa-thumbs-up';
+        $('watchLikesCounter').innerText = v.likes;
+
+        const savePill = $('watchSavePill');
+        savePill.classList.toggle('saved', v.saved);
+        savePill.querySelector('i').className = v.saved ? 'fa-solid fa-bookmark' : 'fa-regular fa-bookmark';
+
+        const cLen = v.commentCount || 0;
+        $('watchCommentsCounter').innerText = cLen;
+        $('boxCommentsCount').innerText = cLen;
+
+        const prevLine = $('boxLastCommentLine');
+        if (cLen > 0) {
+            const lastC = v.comments[v.comments.length - 1] || { user: '', text: '' };
+            prevLine.innerHTML = `<b style="color:var(--rouh-green);">${Rouh.esc(lastC.user)}:</b> <span>${Rouh.esc(lastC.text)}</span>`;
+        } else {
+            prevLine.innerHTML = `<i class="fa-regular fa-comment"></i> <span>كن أول من يعلّق على هذا الدرس...</span>`;
+        }
+
+        const others = getVideosForSubject(activeSubjectObj).filter(item => item.id !== v.id);
+        $('upNextVideosStack').innerHTML = others.map(item => buildYouTubeVideoCard(item)).join('');
+    }
+
+    // ==================== التقديم والتأخير بالنقر مرتين (±10 ثواني) ====================
+    function seekVideoBy(delta, side) {
+        const vidEl = $('lessonVideoEl');
+        if (currentPlayingVideo && currentPlayingVideo.videoUrl && vidEl.style.display !== 'none') {
+            vidEl.currentTime = Math.max(0, Math.min(vidEl.duration || 600, vidEl.currentTime + delta));
+        } else {
+            seekEngineTo(nowTime() + delta);
+        }
+
+        const ripple = $(side === 'right' ? 'rippleRight' : 'rippleLeft');
+        if (ripple) {
+            ripple.classList.remove('show');
+            void ripple.offsetWidth;
+            ripple.classList.add('show');
+        }
+        showControlsTemporarily();
+    }
+
+    function initDoubleTapTouchZones() {
+        const bindZone = (id, delta, side) => {
+            const el = $(id);
+            if (!el) return;
+            let lastTap = 0;
+            el.addEventListener('touchend', (e) => {
+                const now = Date.now();
+                if (now - lastTap < 280) {
+                    e.preventDefault();
+                    seekVideoBy(delta, side);
+                    lastTap = 0;
+                } else {
+                    lastTap = now;
+                }
+            });
+        };
+        bindZone('zoneRewind', -10, 'right');
+        bindZone('zoneForward', 10, 'left');
+    }
+
+    function togglePlayerControlsVisibility() {
+        const box = $('ytPlayerBox');
+        if (box.classList.contains('controls-hidden')) {
+            showControlsTemporarily();
+        } else {
+            box.classList.add('controls-hidden');
+        }
+    }
+
+    function showControlsTemporarily() {
+        const box = $('ytPlayerBox');
+        if (!box) return;
+        box.classList.remove('controls-hidden');
+        clearTimeout(controlsHideTimeout);
+        if (playing) {
+            controlsHideTimeout = setTimeout(() => {
+                if (document.body.classList.contains('landscape-fullscreen-mode')) {
+                    box.classList.add('controls-hidden');
+                }
+            }, 3200);
+        }
+    }
+
+    // ==================== الوضع العريض الكامل ====================
+    function toggleLandscapeMode() {
+        if (document.body.classList.contains('landscape-fullscreen-mode')) {
+            exitLandscapeMode();
+        } else {
+            enterLandscapeMode();
+        }
+    }
+
+    async function enterLandscapeMode() {
+        document.body.classList.add('landscape-fullscreen-mode');
+        $('landscapeBtnText').innerText = 'تصغير';
+        showControlsTemporarily();
+
+        try {
+            const docEl = document.documentElement;
+            if (docEl.requestFullscreen) await docEl.requestFullscreen();
+            else if (docEl.webkitRequestFullscreen) await docEl.webkitRequestFullscreen();
+            if (screen.orientation && screen.orientation.lock) {
+                await screen.orientation.lock('landscape').catch(() => {});
+            }
+        } catch (e) {}
+    }
+
+    function exitLandscapeMode() {
+        if (!document.body.classList.contains('landscape-fullscreen-mode')) return;
+        document.body.classList.remove('landscape-fullscreen-mode');
+        $('ytPlayerBox')?.classList.remove('controls-hidden');$('landscapeBtnText').innerText = 'بالعرض';
+
+        try {
+            if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen();
+            if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
+        } catch (e) {}
+    }
+
+    // ==================== الإعجاب والحفظ والتعليقات ورفع الدروس ====================
+    async function toggleLikeCurrentVideo() {
+        const v = currentPlayingVideo;
+        if (!v) return;
+        const want = !v.liked;
+        v.liked = want; v.likes += want ? 1 : -1; syncStat(v); renderWatchPageDetails();
+        const q = want
+            ? Rouh.sb.from('video_likes').insert({ video_id: v.id, user_id: currentUser.id })
+            : Rouh.sb.from('video_likes').delete().eq('video_id', v.id).eq('user_id', currentUser.id);
+        const { error } = await q;
+        if (error && error.code !== '23505') {
+            v.liked = !want; v.likes += want ? -1 : 1; syncStat(v); renderWatchPageDetails();
+            showToast('تعذر تحديث الإعجاب ⚠️');
+        }
+    }
+
+    async function toggleSaveCurrentVideo() {
+        const v = currentPlayingVideo;
+        if (!v) return;
+        const want = !v.saved;
+        const q = want
+            ? Rouh.sb.from('video_saves').insert({ video_id: v.id, user_id: currentUser.id })
+            : Rouh.sb.from('video_saves').delete().eq('video_id', v.id).eq('user_id', currentUser.id);
+        const { error } = await q;
+        if (error && error.code !== '23505') { showToast('تعذر تحديث المحفوظات ⚠️'); return; }
+        v.saved = want; syncStat(v); renderWatchPageDetails();
+        showToast(want ? 'تم حفظ الدرس في محفوظاتك 🔖' : 'تمت إزالة الدرس من المحفوظات');
+    }
+
+    function openCommentsSheet() {
+        if (!currentPlayingVideo) return;
+        const comments = currentPlayingVideo.comments || [];
+
+        const htmlList = comments.length
+            ? comments.map(c => `
+                <div class="comment-row">
+                    <img src="${Rouh.esc(c.avatar)}" alt="${Rouh.esc(c.user)}">
+                    <div class="comment-bubble">
+                        <h6><span>${Rouh.esc(c.user)}</span> <span style="color:var(--text-secondary); font-weight:600;">${Rouh.esc(c.time)}</span></h6>
+                        <p>${Rouh.esc(c.text)}</p>
+                    </div>
+                </div>
+            `).join('')
+            : `<p style="text-align:center; font-size:0.78rem; color:var(--text-secondary); padding:16px 0;">لا توجد تعليقات بعد.</p>`;
+
+        showPopup(`
+            <h4 style="font-size:0.92rem; font-weight:800; text-align:center; margin-bottom:6px;">
+                <i class="fa-regular fa-comments" style="color:var(--rouh-green);"></i> التعليقات (${comments.length})
+            </h4>
+            <div class="comments-list-box">${htmlList}</div>
+            <div style="display:flex; gap:8px; align-items:center; border-top:1px solid var(--border-light); padding-top:10px;">
+                <input type="text" id="newVidCommentInp" placeholder="أضف تعليقاً أو سؤالاً علمياً..." style="flex:1; padding:10px 14px; border-radius:14px; border:1.5px solid var(--border-light); background:var(--bg-app); color:var(--text-primary); font-size:0.8rem; outline:none;" onkeydown="if(event.key==='Enter') submitVideoComment();">
+                <button onclick="submitVideoComment()" style="width:38px; height:38px; border-radius:12px; border:none; background:linear-gradient(135deg,var(--rouh-green-bright),var(--rouh-green-dark)); color:#fff; cursor:pointer;">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </div>
+        `);
+    }
+
+    async function submitVideoComment() {
+        const inp = $('newVidCommentInp');
+        const txt = inp.value.trim();
+        if (!txt || !currentPlayingVideo) return;
+        const v = currentPlayingVideo;
+        inp.disabled = true;
+        const { error } = await Rouh.sb.from('video_comments').insert({ video_id: v.id, user_id: currentUser.id, body: txt });
+        if (error) { inp.disabled = false; showToast('تعذر نشر التعليق ⚠️'); return; }
+        v.comments.push({ user: currentUser.name, avatar: currentUser.avatar, text: txt, time: 'الآن' });
+        v.commentCount = v.comments.length; syncStat(v);
+        renderWatchPageDetails();
+        openCommentsSheet();
+        showToast('تم نشر تعليقك 💬');
+    }
+
+    let uploadedVideoFile = null;
+
+    function openUploadVideoModal() {
+        uploadedVideoFile = null;
+        if (!Rouh.isContentManager()) { showToast('رفع الدروس متاح للمعلمين والمشرفين فقط'); return; }
+        const targetSub = activeSubjectObj || subjectsCatalog.sci[0];
+        const topicOpts = targetSub.topics.map(t => `<option value="${Rouh.esc(t)}">${Rouh.esc(t)}</option>`).join('');
+
+        showPopup(`
+            <h4 style="font-size:0.94rem; font-weight:800; margin-bottom:10px;">
+                <i class="fa-brands fa-google-drive" style="color:var(--rouh-green);"></i> إضافة درس فيديو (${targetSub.name})
+            </h4>
+            <div class="form-field">
+                <label>اختر البحث المخصص للدرس</label>
+                <select id="upTopicSel">${topicOpts}</select>
+            </div>
+            <div class="form-field">
+                <label>عنوان الدرس المصور</label>
+                <input type="text" id="upTitleInp" placeholder="مثال: شرح قوانين البحث الأول وحل المسائل...">
+            </div>
+            <div class="form-field">
+                <label>رابط الفيديو على Google Drive</label>
+                <input type="url" id="upUrlInp" dir="ltr" placeholder="https://drive.google.com/file/d/.../view">
+                <p style="font-size:0.68rem; color:var(--text-secondary); margin-top:5px; line-height:1.6;">اجعل الملف «أي شخص لديه الرابط يمكنه العرض» قبل نسخ الرابط.</p>
+            </div>
+            <button class="btn-main-action" onclick="saveUploadedVideo('${targetSub.id}', '${targetSub.name}', '${targetSub.grad}')">
+                <i class="fa-solid fa-check"></i> نشر الدرس في البحث المحدد
+            </button>
+        `);
+    }
+
+    function onSelectLocalVideo(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        uploadedVideoFile = file;
+        showToast('تم إرفاق ملف الفيديو بنجاح 🎬');
+    }
+
+    async function saveUploadedVideo(subId, subName, subGrad) {
+        const topic = $('upTopicSel').value;
+        const title = $('upTitleInp').value.trim();
+        const raw = $('upUrlInp').value.trim();
+        if (!title) { showToast('يرجى كتابة عنوان الدرس أولاً ⚠️'); return; }
+        const drive = Rouh.driveInfo(raw);
+        if (!drive || drive.isFolder) { showToast('أدخل رابط فيديو صحيح من Google Drive ⚠️'); return; }
+        try {
+            const { error } = await Rouh.sb.from('lesson_videos').insert({
+                subject_id: subId, subject_name: subName, topic: topic, title: title,
+                video_url: drive.link, grad: subGrad, created_by: currentUser.id
+            });
+            if (error) throw error;
+            await loadCustomLessons();
+            closePopup();
+            if (activeSubjectObj && activeSubjectObj.id === subId) {
+                await hydrateStats(getVideosForSubject(activeSubjectObj));
+                renderChannelVideosList();
+            }
+            showToast('تمت إضافة الدرس بنجاح 🚀');
+        } catch (err) {
+            showToast('تعذر إضافة الدرس (تحقق من صلاحيتك) ⚠️');
+        }
+    }
+
+    function showPopup(html) {
+        $('popupBody').innerHTML = html;
+        $('popupModal').classList.add('open');
+    }
+
+    function closePopup() {
+        $('popupModal').classList.remove('open');
+    }
+
+    function showToast(msg) {
+        const t = $('toastBox');
+        t.innerText = msg;
+        t.style.display = 'block';
+        clearTimeout(window._toastTimer);
+        window._toastTimer = setTimeout(() => { t.style.display = 'none'; }, 2000);
+    }
+
+    function toggleDarkUI() { Rouh.toggleTheme('themeToggleIcon'); }
+
+    document.addEventListener('DOMContentLoaded', async function() {
+        const me = await Rouh.init();
+        if (!me) return;
+        syncUserFromStorage();
+        await loadCustomLessons();
+        initDoubleTapTouchZones();
+        layoutScenes();
+        renderSceneJumpChips();
+        renderFrameAt(0);
+    });
+</script>
+
+</body>
+</html>
