@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <link rel="preconnect" href="https://pzqbyevyxirvfywqzstr.supabase.co" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>الاختبارات المؤتمتة - فريق روح التعليمي</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+    <script src="rouh-core.js"></script>
+    <!-- مكتبة تحويل الشهادة إلى صورة -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        :root {
+            --rouh-green: #159934;
+            --rouh-green-dark: #0b5e1e;
+            --rouh-green-deep: #063811;
+            --rouh-green-bright: #22c55e;
+            --rouh-soft: #e8faee;
+
+            --clr-blue: #3b82f6;
+            --clr-cyan: #22d3ee;
+            --clr-purple: #8b5cf6;
+            --clr-emerald: #10b981;
+            --clr-orange: #f97316;
+            --clr-rose: #f43f5e;
+            --clr-amber: #f59e0b;
+
+            --bg-outer: #e4ece7;
+            --bg-app: #f4f8f5;
+            --bg-card: #ffffff;
+            --bg-subtle: #e9f0ec;
+            --bg-glass: rgba(255, 255, 255, 0.96);
+            --text-primary: #0f1f14;
+            --text-secondary: #5a7061;
+            --border-light: #dfece3;
+            --card-shadow: 0 8px 22px rgba(11, 94, 30, 0.06);
+        }
+
+        body.dark-ui {
+            --bg-outer: #000000;
+            --bg-app: #060907;
+            --bg-card: #111814;
+            --bg-subtle: #1c2620;
+            --bg-glass: rgba(12, 18, 14, 0.96);
+            --rouh-soft: rgba(34, 197, 94, 0.15);
+            --text-primary: #f5faf6;
+            --text-secondary: #94a89a;
+            --border-light: #1e2d23;
+            --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Noto Sans Arabic", "Geeza Pro", Tahoma, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-outer);
+            color: var(--text-primary);
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .phone-frame {
+            width: 100%;
+            max-width: 480px;
+            min-height: 100vh;
+            background-color: var(--bg-app);
+            position: relative;
+            overflow-x: hidden;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.15);
+            padding-top: 66px;
+            padding-bottom: 94px;
+        }
+
+        @keyframes viewSlideIn {
+            from { opacity: 0; transform: translate3d(0, 10px, 0); }
+            to { opacity: 1; transform: translate3d(0, 0, 0); }
+        }
+
+        /* الشريط العلوي الثابت */
+        .glass-topbar {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            height: 66px;
+            background: linear-gradient(135deg, var(--rouh-green-deep) 0%, var(--rouh-green-dark) 55%, var(--rouh-green) 100%);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 14px;
+            z-index: 2000;
+            box-shadow: 0 4px 20px rgba(6, 56, 17, 0.28);
+        }
+
+        .top-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .top-brand img {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            border: 2px solid #4ade80;
+            background: #ffffff;
+            object-fit: cover;
+        }
+
+        .top-brand-text h2 {
+            font-size: 0.96rem;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+
+        .top-brand-text span {
+            font-size: 0.72rem;
+            color: #bbf7d0;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .top-tools {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tool-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 13px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            cursor: pointer;
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.25);
+            transition: transform 0.15s ease;
+        }
+
+        .tool-btn:active { transform: scale(0.92); }
+
+        /* حاوية الواجهات المنفصلة */
+        .quizzes-view-page {
+            display: none;
+            padding: 14px;
+            animation: viewSlideIn 0.22s ease-out;
+        }
+
+        .quizzes-view-page.active { display: block; }
+
+        /* بطاقات المراحل الكبرى (تاسع / بكالوريا) */
+        .main-stage-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .quiz-stage-card {
+            background: var(--bg-card);
+            border: 1.5px solid var(--border-light);
+            border-radius: 20px;
+            padding: 18px 12px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: var(--card-shadow);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.18s ease;
+        }
+
+        .quiz-stage-card:active { transform: scale(0.96); }
+
+        .quiz-stage-card::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; left: 0;
+            height: 4px;
+            background: var(--card-grad);
+        }
+
+        .quiz-stage-ico {
+            width: 52px;
+            height: 52px;
+            border-radius: 16px;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.35rem;
+            color: #fff;
+            background: var(--card-grad);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+        }
+
+        .quiz-stage-card h5 {
+            font-size: 0.92rem;
+            font-weight: 900;
+            margin-bottom: 3px;
+        }
+
+        .quiz-stage-card p {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        /* أزرار فروع البكالوريا (علمي / أدبي) */
+        .bac-branches-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .bac-branch-pill {
+            padding: 12px;
+            border-radius: 14px;
+            border: 1.5px solid var(--border-light);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-size: 0.82rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            box-shadow: var(--card-shadow);
+            transition: all 0.15s;
+        }
+
+        .bac-branch-pill.active {
+            border-color: var(--rouh-green);
+            background: var(--rouh-soft);
+            color: var(--rouh-green);
+        }
+
+        /* شبكة المواد الدراسية */
+        .quiz-subjects-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .quiz-sub-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: 16px;
+            padding: 12px 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.15s ease;
+        }
+
+        .quiz-sub-card:active { transform: scale(0.96); }
+
+        .quiz-sub-ico {
+            width: 40px;
+            height: 40px;
+            border-radius: 13px;
+            background: var(--sub-grad);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.05rem;
+            flex-shrink: 0;
+        }
+
+        .quiz-sub-txt h6 {
+            font-size: 0.78rem;
+            font-weight: 900;
+            margin-bottom: 2px;
+        }
+
+        .quiz-sub-txt span {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+        }
+
+        /* زر العودة */
+        .back-section-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border-light);
+            background: var(--bg-card);
+            color: var(--rouh-green);
+            font-size: 0.75rem;
+            font-weight: 800;
+            cursor: pointer;
+            margin-bottom: 12px;
+        }
+
+        /* واجهة الاختبار الفعلي */
+        .quiz-active-wrap {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: 20px;
+            padding: 18px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .quiz-question-box {
+            background: var(--bg-subtle);
+            border: 1px solid var(--border-light);
+            border-radius: 16px;
+            padding: 15px;
+            font-size: 0.9rem;
+            font-weight: 800;
+            line-height: 1.5;
+            margin-bottom: 14px;
+            text-align: right;
+        }
+
+        .quiz-option-btn {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1.5px solid var(--border-light);
+            background: var(--bg-app);
+            color: var(--text-primary);
+            font-size: 0.82rem;
+            font-weight: 800;
+            cursor: pointer;
+            text-align: right;
+            margin-bottom: 9px;
+            transition: all 0.15s;
+        }
+
+        .quiz-option-btn:active { transform: scale(0.98); }
+        .quiz-option-btn.correct { background: var(--rouh-soft); border-color: var(--rouh-green); color: var(--rouh-green-dark); }
+        .quiz-option-btn.wrong { background: rgba(244,63,94,0.12); border-color: #f43f5e; color: #f43f5e; }
+
+        /* الشريط السفلي الثابت */
+        .bottom-dock {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-top: 1px solid var(--border-light);
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            align-items: end;
+            padding: 6px 8px 10px;
+            z-index: 2000;
+            box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .dock-btn {
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            font-size: 0.68rem;
+            font-weight: 800;
+            cursor: pointer;
+            padding: 6px 4px;
+            border-radius: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .dock-icon-box {
+            width: 36px;
+            height: 32px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            transition: all 0.2s ease;
+        }
+
+        .dock-btn.active { color: var(--rouh-green); }
+        .dock-btn.active .dock-icon-box { background: var(--rouh-soft); color: var(--rouh-green); transform: translateY(-2px); }
+
+        .dock-btn.center-home-btn {
+            position: relative;
+            background: transparent !important;
+            padding-top: 0;
+        }
+
+        .center-home-orb {
+            width: 50px;
+            height: 50px;
+            border-radius: 18px;
+            background: var(--bg-card);
+            border: 2px solid var(--border-light);
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            margin-top: -20px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        /* النوافذ المنبثقة */
+        .modal-wrap {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(5px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            padding: 16px;
+        }
+
+        .modal-wrap.open { display: flex; }
+
+        .modal-box {
+            background: var(--bg-card);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 440px;
+            padding: 20px;
+            border: 2px solid var(--rouh-green);
+            position: relative;
+            animation: viewSlideIn 0.22s ease-out;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-close-x {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            border: none;
+            background: var(--bg-subtle);
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        .btn-modal-action {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--rouh-green-bright), var(--rouh-green-dark));
+            color: #ffffff;
+            font-size: 0.88rem;
+            font-weight: 800;
+            cursor: pointer;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .toast-alert {
+            position: fixed;
+            bottom: 105px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--rouh-green-deep);
+            color: #ffffff;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            z-index: 4000;
+            display: none;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+        }
+    </style>
+</head>
+<body>
+    <script>try{if(localStorage.getItem("rouh_dark_mode")==="true")document.body.classList.add("dark-ui");}catch(e){}</script>
+
+<div class="phone-frame">
+
+    <!-- الشريط العلوي الثابت -->
+    <header class="glass-topbar">
+        <div class="top-brand" onclick="triggerGoNav('home', this)">
+            <img src="https://i.ibb.co/whHk6hcT/IMG-20261011-WA0031.jpg" alt="فريق روح التعليمي">
+            <div class="top-brand-text">
+                <h2>الاختبارات المؤتمتة</h2>
+                <span id="topBarStageLabel"><i class="fa-solid fa-clipboard-check"></i> قياس مستوى التفوق</span>
+            </div>
+        </div>
+        <div class="top-tools">
+            <button class="tool-btn" onclick="toggleDarkUI()" title="تبديل المظهر">
+                <i class="fa-solid fa-sun" id="themeToggleIcon"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- ==================== واجهة 1: اختيار المرحلة (تاسع أو بكالوريا) ==================== -->
+    <main class="quizzes-view-page active" id="quizViewStageSelect">
+        <div style="text-align:center; margin-bottom:16px;">
+            <h3 style="font-size:1.05rem; font-weight:900; margin-bottom:4px;">بنك الاختبارات المؤتمتة 2027</h3>
+            <p style="font-size:0.76rem; color:var(--text-secondary);">اختر مرحلتك الدراسية للبدء بالتدرب وحصد شهادات التقدير:</p>
+        </div>
+
+        <div class="main-stage-grid">
+            <div class="quiz-stage-card" style="--card-grad:linear-gradient(135deg,#34d399,#059669);" onclick="openQuizBranchSelection('bac')">
+                <div class="quiz-stage-ico"><i class="fa-solid fa-user-graduate"></i></div>
+                <h5>شهادة البكالوريا</h5>
+                <p>العلمي والأدبي</p>
+            </div>
+
+            <div class="quiz-stage-card" style="--card-grad:linear-gradient(135deg,#60a5fa,#2563eb);" onclick="openQuizSubjectsView('ninth')">
+                <div class="quiz-stage-ico"><i class="fa-solid fa-compass-drafting"></i></div>
+                <h5>التاسع الأساسي</h5>
+                <p>شهادة التعليم الأساسي</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- ==================== واجهة 2: اختيار فرع البكالوريا (علمي / أدبي) ==================== -->
+    <main class="quizzes-view-page" id="quizViewBacBranch">
+        <button class="back-section-btn" onclick="openQuizStageSelect()"><i class="fa-solid fa-arrow-right"></i> اختيار المرحلة</button>
+        <div style="text-align:center; margin-bottom:14px;">
+            <h3 style="font-size:1rem; font-weight:900;">اختر فرع البكالوريا الدراسي:</h3>
+        </div>
+        <div class="bac-branches-row">
+            <button class="bac-branch-pill active" id="btnQuizSci" onclick="switchQuizBacBranch('sci')"><i class="fa-solid fa-atom"></i> بكالوريا علمي</button>
+            <button class="bac-branch-pill" id="btnQuizLit" onclick="switchQuizBacBranch('lit')"><i class="fa-solid fa-feather-pointed"></i> بكالوريا أدبي</button>
+        </div>
+        <div class="quiz-subjects-grid" id="bacSubjectsGridList"></div>
+    </main>
+
+    <!-- ==================== واجهة 3: عرض مواد الصف التاسع ==================== -->
+    <main class="quizzes-view-page" id="quizViewNinthSubjects">
+        <button class="back-section-btn" onclick="openQuizStageSelect()"><i class="fa-solid fa-arrow-right"></i> اختيار المرحلة</button>
+        <div style="margin-bottom:14px;">
+            <h3 style="font-size:0.92rem; font-weight:900;"><i class="fa-solid fa-clipboard-question" style="color:var(--rouh-green);"></i> مواد الصف التاسع الأساسي:</h3>
+        </div>
+        <div class="quiz-subjects-grid" id="ninthSubjectsGridList"></div>
+    </main>
+
+    <!-- ==================== واجهة 4: تنفيذ الاختبار الفعلي (واجهة منفصلة) ==================== -->
+    <main class="quizzes-view-page" id="quizViewActiveSession">
+        <button class="back-section-btn" id="quizActiveBackBtn"><i class="fa-solid fa-arrow-right"></i> رجوع للمواد</button>
+        <div class="quiz-active-wrap">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+                <span style="font-size:0.75rem; font-weight:800; color:var(--rouh-green);" id="quizActiveProgressTxt">السؤال (1 من 2)</span>
+                <span style="font-size:0.75rem; color:var(--text-secondary);" id="quizActiveSubjectTitle">المادة</span>
+            </div>
+            <div class="quiz-question-box" id="quizActiveQuestionText">نص السؤال هنا...</div>
+            <div id="quizActiveOptionsList"></div>
+            <div id="quizActiveNextActionBox" style="margin-top:10px;"></div>
+        </div>
+    </main>
+
+    <!-- ==================== الشريط السفلي الثابت ==================== -->
+    <nav class="bottom-dock">
+        <button class="dock-btn" id="dock-profile" onclick="triggerGoNav('profile', this)">
+            <div class="dock-icon-box"><i class="fa-solid fa-user"></i></div>
+            <span>الملف الشخصي</span>
+        </button>
+        <button class="dock-btn" id="dock-news" onclick="triggerGoNav('news', this)">
+            <div class="dock-icon-box"><i class="fa-solid fa-newspaper"></i></div>
+            <span>الأخبار</span>
+        </button>
+        <button class="dock-btn center-home-btn" id="dock-home" onclick="triggerGoNav('home', this)">
+            <div class="center-home-orb">
+                <i class="fa-solid fa-house-chimney"></i>
+            </div>
+            <span>الرئيسية</span>
+        </button>
+        <button class="dock-btn active" id="dock-quizzes" onclick="openQuizStageSelect()">
+            <div class="dock-icon-box"><i class="fa-solid fa-clipboard-check"></i></div>
+            <span>الاختبارات</span>
+        </button>
+        <button class="dock-btn" id="dock-chat" onclick="triggerGoNav('chat')">
+            <div class="dock-icon-box"><i class="fa-solid fa-comments"></i></div>
+            <span>الدردشة</span>
+        </button>
+    </nav>
+
+</div>
+
+<!-- النافذة المنبثقة للنتيجة -->
+<div class="modal-wrap" id="popupModal" onclick="if(event.target===this) closePopup()">
+    <div class="modal-box">
+        <button class="modal-close-x" onclick="closePopup()"><i class="fa-solid fa-xmark"></i></button>
+        <div id="popupBody"></div>
+    </div>
+</div>
+
+<div class="toast-alert" id="toastBox">تم بنجاح!</div>
+
+<script>
+    function triggerGoNav(key) { Rouh.go(key); }
+
+    let currentUser = {
+        name: 'طالب روح',
+        avatar: 'https://i.ibb.co/whHk6hcT/IMG-20261011-WA0031.jpg'
+    };
+
+    function syncUserFromStorage() {
+        currentUser.id = Rouh.me.id;
+        currentUser.name = Rouh.me.full_name;
+        Rouh.applyTheme('themeToggleIcon');
+    }
+
+    async function loadQuizQuestions() {
+        const { data, error } = await Rouh.sb.from('quiz_questions')
+            .select('stage,subject,question,options,correct_index,sort_order').order('sort_order');
+        if (error) { showToast('تعذر تحميل أسئلة الاختبارات ⚠️'); return; }
+        data.forEach(r => {
+            const sub = (quizzesCatalog[r.stage] || []).find(x => x.name === r.subject);
+            if (sub) sub.questions.push({ q: r.question, options: r.options, correct: r.correct_index });
+        });
+    }
+
+    function shuffleArr(a) {
+        const r = a.slice();
+        for (let i = r.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [r[i], r[j]] = [r[j], r[i]]; }
+        return r;
+    }
+
+    // كتالوج المواد الكامل وشامل لكل فرع ومرحلة دراسية
+    const quizzesCatalog = {
+    "sci": [
+        {
+            "name": "الرياضيات",
+            "desc": "تحليل + جبر + هندسة",
+            "icon": "fa-square-root-variable",
+            "grad": "linear-gradient(135deg,#60a5fa,#2563eb)",
+            "questions": []
+        },
+        {
+            "name": "الفيزياء",
+            "desc": "نواسات + كهرباء",
+            "icon": "fa-atom",
+            "grad": "linear-gradient(135deg,#a78bfa,#7c3aed)",
+            "questions": []
+        },
+        {
+            "name": "الكيمياء",
+            "desc": "نووية + حرارية + عضوية",
+            "icon": "fa-flask",
+            "grad": "linear-gradient(135deg,#22d3ee,#0891b2)",
+            "questions": []
+        },
+        {
+            "name": "علم الأحياء",
+            "desc": "عصبية + وراثة",
+            "icon": "fa-dna",
+            "grad": "linear-gradient(135deg,#34d399,#059669)",
+            "questions": []
+        },
+        {
+            "name": "اللغة العربية",
+            "desc": "قصائد + قواعد",
+            "icon": "fa-feather-pointed",
+            "grad": "linear-gradient(135deg,#fb923c,#ea580c)",
+            "questions": []
+        },
+        {
+            "name": "اللغة الإنكليزية",
+            "desc": "قواعد وترجمة",
+            "icon": "fa-language",
+            "grad": "linear-gradient(135deg,#fb7185,#e11d48)",
+            "questions": []
+        },
+        {
+            "name": "اللغة الفرنسية",
+            "desc": "Grammaire & Textes",
+            "icon": "fa-spell-check",
+            "grad": "linear-gradient(135deg,#818cf8,#4f46e5)",
+            "questions": []
+        },
+        {
+            "name": "التربية الوطنية",
+            "desc": "مفاهيم وقضايا",
+            "icon": "fa-flag",
+            "grad": "linear-gradient(135deg,#2dd4bf,#0d9488)",
+            "questions": []
+        },
+        {
+            "name": "التربية الدينية",
+            "desc": "تلاوة وأحكام",
+            "icon": "fa-mosque",
+            "grad": "linear-gradient(135deg,#fbbf24,#d97706)",
+            "questions": []
+        }
+    ],
+    "lit": [
+        {
+            "name": "اللغة العربية",
+            "desc": "الأدب والبلاغة والنحو",
+            "icon": "fa-feather-pointed",
+            "grad": "linear-gradient(135deg,#34d399,#059669)",
+            "questions": []
+        },
+        {
+            "name": "الفلسفة",
+            "desc": "المعرفة والأخلاق",
+            "icon": "fa-brain",
+            "grad": "linear-gradient(135deg,#a78bfa,#7c3aed)",
+            "questions": []
+        },
+        {
+            "name": "التاريخ",
+            "desc": "تاريخ العرب الحديث",
+            "icon": "fa-scroll",
+            "grad": "linear-gradient(135deg,#fb923c,#ea580c)",
+            "questions": []
+        },
+        {
+            "name": "الجغرافيا",
+            "desc": "طبيعية وبشرية",
+            "icon": "fa-earth-asia",
+            "grad": "linear-gradient(135deg,#60a5fa,#2563eb)",
+            "questions": []
+        },
+        {
+            "name": "اللغة الإنكليزية",
+            "desc": "Textes & Grammar",
+            "icon": "fa-language",
+            "grad": "linear-gradient(135deg,#fb7185,#e11d48)",
+            "questions": []
+        },
+        {
+            "name": "اللغة الفرنسية",
+            "desc": "Français",
+            "icon": "fa-spell-check",
+            "grad": "linear-gradient(135deg,#818cf8,#4f46e5)",
+            "questions": []
+        },
+        {
+            "name": "التربية الوطنية",
+            "desc": "قضايا وطنية",
+            "icon": "fa-flag",
+            "grad": "linear-gradient(135deg,#2dd4bf,#0d9488)",
+            "questions": []
+        },
+        {
+            "name": "التربية الدينية",
+            "desc": "أحكام وعقيدة",
+            "icon": "fa-mosque",
+            "grad": "linear-gradient(135deg,#fbbf24,#d97706)",
+            "questions": []
+        }
+    ],
+    "ninth": [
+        {
+            "name": "الرياضيات",
+            "desc": "جبر وهندسة",
+            "icon": "fa-compass-drafting",
+            "grad": "linear-gradient(135deg,#60a5fa,#2563eb)",
+            "questions": []
+        },
+        {
+            "name": "العلوم العامة",
+            "desc": "أجهزة جسم الإنسان",
+            "icon": "fa-microscope",
+            "grad": "linear-gradient(135deg,#34d399,#059669)",
+            "questions": []
+        },
+        {
+            "name": "الفيزياء والكيمياء",
+            "desc": "كهرباء ومادة",
+            "icon": "fa-bolt",
+            "grad": "linear-gradient(135deg,#22d3ee,#0891b2)",
+            "questions": []
+        },
+        {
+            "name": "اللغة العربية",
+            "desc": "قواعد ونصوص",
+            "icon": "fa-book-open",
+            "grad": "linear-gradient(135deg,#a78bfa,#7c3aed)",
+            "questions": []
+        },
+        {
+            "name": "الاجتماعيات",
+            "desc": "تاريخ وجغرافيا",
+            "icon": "fa-globe",
+            "grad": "linear-gradient(135deg,#fb923c,#ea580c)",
+            "questions": []
+        },
+        {
+            "name": "اللغة الإنكليزية",
+            "desc": "English 9th",
+            "icon": "fa-language",
+            "grad": "linear-gradient(135deg,#fb7185,#e11d48)",
+            "questions": []
+        },
+        {
+            "name": "اللغة الفرنسية",
+            "desc": "Français 9e",
+            "icon": "fa-spell-check",
+            "grad": "linear-gradient(135deg,#818cf8,#4f46e5)",
+            "questions": []
+        },
+        {
+            "name": "التربية الدينية",
+            "desc": "تلاوة وأحكام",
+            "icon": "fa-mosque",
+            "grad": "linear-gradient(135deg,#fbbf24,#d97706)",
+            "questions": []
+        }
+    ]
+};
+    // الأسئلة تُحمَّل من جدول quiz_questions
+
+    function switchQuizView(viewId) {
+        Rouh.native.setProtection('exam', viewId === 'quizViewActiveSession'); // منع لقطات الشاشة أثناء الاختبار داخل التطبيق
+        document.querySelectorAll('.quizzes-view-page').forEach(v => v.classList.remove('active'));
+        const target = document.getElementById(viewId);
+        if (target) target.classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function openQuizStageSelect() {
+        switchQuizView('quizViewStageSelect');
+    }
+
+    function openQuizBranchSelection(stageKey) {
+        switchQuizView('quizViewBacBranch');
+        switchQuizBacBranch('sci');
+    }
+
+    function openQuizSubjectsView(stageKey) {
+        switchQuizView('quizViewNinthSubjects');
+        renderNinthSubjectsGrid();
+    }
+
+    function switchQuizBacBranch(branchKey) {
+        document.getElementById('btnQuizSci').classList.toggle('active', branchKey === 'sci');
+        document.getElementById('btnQuizLit').classList.toggle('active', branchKey === 'lit');
+        renderBacSubjectsGrid(branchKey);
+    }
+
+    function renderBacSubjectsGrid(branchKey) {
+        const list = quizzesCatalog[branchKey] || [];
+        const grid = document.getElementById('bacSubjectsGridList');
+        grid.innerHTML = list.map((sub, idx) => `
+            <div class="quiz-sub-card" style="--sub-grad:${sub.grad};" onclick="startQuizSession('${branchKey}', ${idx}, 'quizViewBacBranch')">
+                <div class="quiz-sub-ico"><i class="fa-solid ${sub.icon}"></i></div>
+                <div class="quiz-sub-txt">
+                    <h6>${sub.name}</h6>
+                    <span>${sub.desc}</span>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function renderNinthSubjectsGrid() {
+        const list = quizzesCatalog['ninth'] || [];
+        const grid = document.getElementById('ninthSubjectsGridList');
+        grid.innerHTML = list.map((sub, idx) => `
+            <div class="quiz-sub-card" style="--sub-grad:${sub.grad};" onclick="startQuizSession('ninth', ${idx}, 'quizViewNinthSubjects')">
+                <div class="quiz-sub-ico"><i class="fa-solid ${sub.icon}"></i></div>
+                <div class="quiz-sub-txt">
+                    <h6>${sub.name}</h6>
+                    <span>${sub.desc}</span>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // ==================== بدء الاختبار الفعلي في واجهة منفصلة ====================
+    let activeQuizData = null;
+    let activeStageKeyForResult = 'sci';
+    let lastScorePercent = 0;
+    let currentQIndex = 0;
+    let correctAnswersCount = 0;
+    let returnBackViewId = 'quizViewStageSelect';
+
+    function startQuizSession(catKey, subIdx, backView) {
+        const src = quizzesCatalog[catKey][subIdx];
+        if (!src.questions.length) { showToast('لا توجد أسئلة لهذه المادة بعد، ستتوفر قريباً 📚'); return; }
+        // خلط ترتيب الأسئلة والخيارات حتى لا تبقى الإجابة الصحيحة في مكان ثابت
+        activeQuizData = {
+            name: src.name,
+            questions: shuffleArr(src.questions).map(q => {
+                const opts = q.options.map((text, i) => ({ text, ok: i === q.correct }));
+                const mixed = shuffleArr(opts);
+                return { q: q.q, options: mixed.map(o => o.text), correct: mixed.findIndex(o => o.ok) };
+            })
+        };
+        activeStageKeyForResult = catKey;
+        currentQIndex = 0;
+        correctAnswersCount = 0;
+        returnBackViewId = backView;
+
+        document.getElementById('quizActiveSubjectTitle').innerText = activeQuizData.name;
+        document.getElementById('quizActiveBackBtn').setAttribute('onclick', `switchQuizView('${returnBackViewId}')`);
+
+        renderQuizQuestionInSeparateView();
+        switchQuizView('quizViewActiveSession');
+    }
+
+    function renderQuizQuestionInSeparateView() {
+        const qObj = activeQuizData.questions[currentQIndex];
+        const totalQ = activeQuizData.questions.length;
+
+        document.getElementById('quizActiveProgressTxt').innerText = `السؤال (${currentQIndex + 1} من ${totalQ})`;
+        document.getElementById('quizActiveQuestionText').innerText = qObj.q;
+
+        const optionsHTML = qObj.options.map((opt, i) => `
+            <button class="quiz-option-btn" id="optBtn-${i}" onclick="checkQuizAnswerInView(${i}, ${qObj.correct})">
+                ${['أ', 'ب', 'ج', 'د'][i]}) ${opt}
+            </button>
+        `).join('');
+
+        document.getElementById('quizActiveOptionsList').innerHTML = optionsHTML;
+        document.getElementById('quizActiveNextActionBox').innerHTML = '';
+    }
+
+    function checkQuizAnswerInView(selectedIdx, correctIdx) {
+        const totalQ = activeQuizData.questions.length;
+        const allBtns = document.querySelectorAll('.quiz-option-btn');
+
+        allBtns.forEach((btn, idx) => {
+            btn.disabled = true;
+            if (idx === correctIdx) btn.classList.add('correct');
+            else if (idx === selectedIdx) btn.classList.add('wrong');
+        });
+
+        if (selectedIdx === correctIdx) {
+            correctAnswersCount++;
+            showToast('إجابة صحيحة! أحسنت 🌟');
+        } else {
+            showToast('إجابة خاطئة ⚠️');
+        }
+
+        const nextBox = document.getElementById('quizActiveNextActionBox');
+        const isLast = (currentQIndex + 1 >= totalQ);
+
+        nextBox.innerHTML = `
+            <button class="btn-modal-action" onclick="${isLast ? 'finishQuizSessionInView()' : 'currentQIndex++; renderQuizQuestionInSeparateView();'}">
+                ${isLast ? 'عرض النتيجة النهائية 🏆' : 'السؤال التالي <i class="fa-solid fa-arrow-left"></i>'}
+            </button>
+        `;
+    }
+
+    function finishQuizSessionInView() {
+        const totalQ = activeQuizData.questions.length;
+        const scorePercent = Math.round((correctAnswersCount / totalQ) * 100);
+        lastScorePercent = scorePercent;
+        Rouh.sb.from('exam_results').insert({
+            user_id: currentUser.id, stage: activeStageKeyForResult, subject: activeQuizData.name,
+            correct: correctAnswersCount, total: totalQ, percent: scorePercent, passed: scorePercent >= 80
+        }).then(r => { if (r.error) showToast('تعذر حفظ نتيجتك في السجل ⚠️'); });
+
+        // شرط النجاح والحصول على الشهادة: 80% فما فوق بناءً على طلبك الأخير
+        if (scorePercent >= 80) {
+            generateCertificateCanvas(scorePercent);
+        } else {
+            showPopup(`
+                <div style="text-align:center; padding:10px;">
+                    <div style="font-size:3rem; margin-bottom:8px;">🎯</div>
+                    <h4 style="font-size:1.02rem; font-weight:900; margin-bottom:6px;">نتيجة الاختبار: ${scorePercent}%</h4>
+                    <p style="font-size:0.78rem; color:var(--text-secondary); margin-bottom:16px;">
+                        أحسنت المحاولة! لتحصل على <b>شهادة التقدير الرسمية</b>، يجب أن تحقق 80% فأكثر في الاختبار.
+                    </p>
+                    <button class="btn-modal-action" onclick="closePopup(); switchQuizView(returnBackViewId);">العودة للمواد</button>
+                </div>
+            `);
+        }
+    }
+
+    // ==================== تصميم شهادة التقدير الرسمية الفاخرة بشعار المنصة (80% فما فوق) ====================
+    function generateCertificateCanvas(percent) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1200;
+        canvas.height = 850;
+        const ctx = canvas.getContext('2d');
+
+        // خلفية الشهادة البيضاء مع نقوش وتدرج ناعم
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, 1200, 850);
+
+        // إطار ذهبي فاخر
+        ctx.strokeStyle = '#c59b27';
+        ctx.lineWidth = 8;
+        ctx.strokeRect(35, 35, 1130, 780);
+        ctx.lineWidth = 2;
+        ctx.strokeRect(47, 47, 1106, 756);
+
+        ctx.textAlign = 'center';
+        ctx.direction = 'rtl';
+
+        // تحميل شعار منصة فريق روح التعليمي الرسمي
+        const logoImg = new Image();
+        logoImg.crossOrigin = 'anonymous';
+        logoImg.onload = function() {
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(600, 130, 48, 0, Math.PI * 2);
+            ctx.closePath();
+            ctx.clip();
+            ctx.drawImage(logoImg, 550, 82, 96, 96);
+            ctx.restore();
+
+            ctx.strokeStyle = '#c59b27';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(600, 130, 49, 0, Math.PI * 2);
+            ctx.stroke();
+
+            drawOfficialCertText(canvas, percent);
+        };
+
+        logoImg.onerror = function() {
+            ctx.fillStyle = '#047857';
+            ctx.beginPath(); ctx.arc(600, 130, 45, 0, Math.PI * 2); ctx.fill();
+            drawOfficialCertText(canvas, percent);
+        };
+
+        logoImg.src = 'https://i.ibb.co/whHk6hcT/IMG-20261011-WA0031.jpg';
+    }
+
+    function drawOfficialCertText(canvas, percent) {
+        const ctx = canvas.getContext('2d');
+        ctx.textAlign = 'center';
+        ctx.direction = 'rtl';
+
+        // اسم المنصة
+        ctx.fillStyle = '#047857';
+        ctx.font = 'bold 30px sans-serif';
+        ctx.fillText('منصة فريق روح التعليمي - سوريا', 600, 215);
+
+        // عنوان الشهادة
+        ctx.fillStyle = '#0f172a';
+        ctx.font = 'bold 52px serif';
+        ctx.fillText('شَهَادَةُ تَقْدِيرٍ وَتَفَوُّقٍ', 600, 300);
+
+        ctx.fillStyle = '#64748b';
+        ctx.font = '24px sans-serif';
+        ctx.fillText('تتشرف إدارة المنصة بمنح هذه الشهادة الفخرية إلى الطالب(ة) المتألق(ة):', 600, 375);
+
+        // اسم الطالب
+        ctx.fillStyle = '#047857';
+        ctx.font = 'bold 58px serif';
+        ctx.fillText(currentUser.name, 600, 470);
+
+        // تفاصيل النتيجة والدرجة
+        ctx.fillStyle = '#1e293b';
+        ctx.font = '28px sans-serif';
+        ctx.fillText(`لاجتيازه الاختبار المؤتمت في مادة (${activeQuizData.name}) بنجاح باهر`, 600, 545);
+
+        ctx.fillStyle = '#c59b27';
+        ctx.font = 'bold 38px sans-serif';
+        ctx.fillText(`بتقدير امتياز وحصوله على علامة: ${percent}% 🌟`, 600, 625);
+
+        // التوقيع والأختام
+        ctx.fillStyle = '#64748b';
+        ctx.font = 'bold 22px sans-serif';
+        ctx.fillText('إدارة منصة فريق روح', 260, 725);
+        ctx.strokeStyle = '#c59b27';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(160, 680); ctx.lineTo(360, 680); ctx.stroke();
+
+        ctx.fillText('لجنة الأساتذة المشرفة', 940, 725);
+        ctx.beginPath(); ctx.moveTo(840, 680); ctx.lineTo(1040, 680); ctx.stroke();
+
+        const certDataUrl = canvas.toDataURL('image/png');
+        window._lastCertificateCanvas = canvas;
+
+        showPopup(`
+            <div style="text-align:center;">
+                <div style="font-size:2.4rem; margin-bottom:4px;">🏆</div>
+                <h4 style="font-size:1.02rem; font-weight:900; color:var(--rouh-green-bright); margin-bottom:4px;">ألف مبارك! حققت ${percent}%</h4>
+                <p style="font-size:0.76rem; color:var(--text-secondary); margin-bottom:12px;">لقد حصلت على شهادة التقدير الرسمية متضمنة اسمك وعلامتك:</p>
+                <img src="${certDataUrl}" style="width:100%; border-radius:14px; border:2px solid #c59b27; margin-bottom:12px; box-shadow:var(--card-shadow);">
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    <button class="btn-modal-action" onclick="shareCertificateImage()">
+                        <i class="fa-solid fa-share-nodes"></i> مشاركة شهادة التقدير
+                    </button>
+                    <button type="button" onclick="saveCertificateImage()" style="border:none; cursor:pointer; width:100%; padding:11px; border-radius:14px; background:var(--rouh-soft); color:var(--rouh-green-dark); font-size:0.84rem; font-weight:800; font-family:inherit;">
+                        <i class="fa-solid fa-download"></i> حفظ الشهادة في الهاتف
+                    </button>
+                </div>
+            </div>
+        `);
+    }
+
+    async function shareCertificateImage() {
+        const canvas = window._lastCertificateCanvas;
+        if (!canvas) return;
+        const r = await Rouh.shareImage(canvas, 'rouh-certificate.png', {
+            title: 'شهادة تفوق - فريق روح التعليمي',
+            text: `حصلت على شهادة تقدير رسمية من منصة فريق روح التعليمي في مادة ${activeQuizData.name} بعلامة ${lastScorePercent}%! 🌟`
+        });
+        if (r === 'downloaded') showToast('تم حفظ الشهادة 📥');
+        else if (r === 'failed') showToast('تعذرت مشاركة الشهادة ⚠️');
+    }
+
+    async function saveCertificateImage() {
+        const canvas = window._lastCertificateCanvas;
+        if (!canvas) return;
+        const r = await Rouh.saveImage(canvas, 'rouh-certificate.png', { title: 'شهادة تفوق - فريق روح التعليمي' });
+        if (r === 'downloaded') showToast('تم حفظ الشهادة 📥');
+        else if (r === 'failed') showToast('تعذر حفظ الشهادة ⚠️');
+    }
+
+    function showPopup(html) {
+        document.getElementById('popupBody').innerHTML = html;
+        document.getElementById('popupModal').classList.add('open');
+    }
+
+    function closePopup() {
+        document.getElementById('popupModal').classList.remove('open');
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById('toastBox');
+        t.innerText = msg;
+        t.style.display = 'block';
+        setTimeout(() => { t.style.display = 'none'; }, 2200);
+    }
+
+    function toggleDarkUI() { Rouh.toggleTheme('themeToggleIcon'); }
+
+    document.addEventListener('DOMContentLoaded', async function() {
+        const me = await Rouh.init();
+        if (!me) return;
+        syncUserFromStorage();
+        await loadQuizQuestions();
+    });
+</script>
+
+</body>
+</html>
