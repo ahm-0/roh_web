@@ -1920,6 +1920,8 @@
     const subjectsCatalog = { sci: [], lit: [], ninth: [] };
     let customLessonsStore = {};  // subjectId -> فيديوهات مرفوعة (جدول lesson_videos)
     let statsCache = {};          // videoId -> {views, likes, liked, saved, commentCount}
+    let lessonsLoadState = 'loading';
+    let lessonsLoadError = false;
 
     function getVideosForSubject(subObj) {
         if (!subObj) return [];
@@ -1945,7 +1947,12 @@
         const { data, error } = await Rouh.sb.from('lesson_videos').select('id,stage,subject_id,subject_name,topic,title,teacher,duration,created_at,grad,video_url,is_protected').order('created_at', { ascending: false });
         customLessonsStore = {};
         Object.keys(subjectsCatalog).forEach(stage => { subjectsCatalog[stage] = []; });
-        if (error) { showToast('تعذر تحميل الدروس من قاعدة البيانات ⚠️'); return; }
+        if (error) {
+            lessonsLoadState = 'error'; lessonsLoadError = true;
+            showToast('تعذر تحميل الدروس من قاعدة البيانات ⚠️');
+            renderOriginalSubjectCards(activeStageKey, activeStageKey === 'ninth' ? 'ninthSubjectsGrid' : 'bacSubjectsGrid', activeStageKey === 'ninth' ? 'page-ninth' : 'page-bac');
+            return;
+        }
         (data || []).forEach(r => {
             const videoUrl = Rouh.safeUrl(r.video_url);
             if (!subjectsCatalog[r.stage] || !r.subject_id || !r.subject_name || !videoUrl) return;
@@ -1964,6 +1971,13 @@
             if (video.topic && !subject.topics.includes(video.topic)) subject.topics.push(video.topic);
         });
         Object.keys(subjectsCatalog).forEach(stage => subjectsCatalog[stage].sort((a,b) => a.name.localeCompare(b.name, 'ar')));
+        lessonsLoadState = 'loaded'; lessonsLoadError = false;
+        // قد يختار المستخدم المرحلة أثناء انتظار الشبكة؛ أعد رسم القائمة بعد وصول البيانات.
+        if ($('page-bac')?.classList.contains('active')) {
+            renderOriginalSubjectCards(activeStageKey, 'bacSubjectsGrid', 'page-bac');
+        } else if ($('page-ninth')?.classList.contains('active')) {
+            renderOriginalSubjectCards('ninth', 'ninthSubjectsGrid', 'page-ninth');
+        }
     }
 
     async function hydrateStats(videos) {
@@ -2030,7 +2044,15 @@
         const list = subjectsCatalog[stageKey] || [];
         const grid = $(gridId);
         if (!grid) return;
-        if (!list.length) { grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--text-secondary);padding:20px;">لا توجد فيديوهات مضافة لهذه المرحلة بعد.</p>'; return; }
+        if (!list.length) {
+            const message = lessonsLoadState === 'loading'
+                ? 'جارٍ تحميل الدروس من قاعدة البيانات…'
+                : lessonsLoadError
+                    ? 'تعذر تحميل الدروس. تحقق من الاتصال ثم أعد فتح الصفحة.'
+                    : 'لا توجد فيديوهات مضافة لهذه المرحلة بعد. ستظهر المواد هنا عند إضافة أول درس من لوحة إدارة المحتوى.';
+            grid.innerHTML = `<p style="grid-column:1/-1;text-align:center;color:var(--text-secondary);padding:20px;line-height:1.8;">${message}</p>`;
+            return;
+        }
         grid.innerHTML = list.map((sub, idx) => `
             <div class="glow-book-card" style="--card-accent:${sub.accent}; --card-soft:${sub.soft};" onclick="openSubjectChannel('${stageKey}', ${idx}, '${returnPageId}')">
                 <div>
