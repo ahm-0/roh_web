@@ -26,11 +26,11 @@ student (طالب) • teacher (يرفع الدروس) • supervisor (الدع�
 - رسائل المشرفين في الدردشة تظهر بفقاعة مميزة مع شارة «مشرف».
 
 ## التطبيق الأصلي (Capacitor)
-الموقع يعمل داخل Capacitor ويستخدم الجسر اليدوي `window.RohApp` (الطبقة في `rouh-core.js` ← `Rouh.native`):
-- `window.RohApp.ready()` تُستدعى تلقائياً عند تحميل كل صفحة لإزالة شاشة الترحيب.
-- فيديوهات الدروس: `window.RohApp.openVideo(url, title[, true])` — الثالث يمنع تصوير الشاشة للدروس المعلّمة «محمي».
-- ملفات PDF: `window.RohApp.openPdf(url, title)` | مدير الملفات: `window.RohApp.openStorageManager()` (الملف الشخصي ← الإعدادات).
-- منع اللقطات: `enableScreenshotProtection()` / `disableScreenshotProtection()` أثناء الاختبارات وبتفضيل المستخدم.
+الموقع يعمل داخل Capacitor ويستخدم طبقة التوافق في `rouh-core.js` ← `Rouh.native` مع الجسر اليدوي الذي يكشفه التطبيق الأصلي باسم `window.RohAndroid` (ويظل `window.RohApp` مدعوماً للتوافق):
+- `window.RohAndroid.webReady()` تُستدعى تلقائياً عند تحميل الصفحة لإزالة طبقة الترحيب الأصلية. تُعاد المحاولة عند جاهزية DOM وعند `load` وبعد مهلة قصيرة إذا تأخر الجسر.
+- فيديوهات الدروس: `window.RohAndroid.openNativeVideoViewer(url, title[, true])` — الثالث يمنع تصوير الشاشة للدروس المعلّمة «محمي».
+- ملفات PDF: `window.RohAndroid.openNativePdfViewer(url, title)` | مدير الملفات: `window.RohAndroid.openStorageManager()` (الملف الشخصي ← الإعدادات).
+- منع اللقطات: `setScreenCaptureProtection(true|false)` أثناء الاختبارات وبتفضيل المستخدم.
 - المشاركة والنسخ وحفظ الصور تستخدم إضافات Capacitor إن وُجدت (Share, Filesystem, Clipboard, Browser) وإلا Web Share ثم بدائل المتصفح.
 - روابط Drive تُحوَّل إلى رابط مباشر `drive.usercontent.google.com/download?id=...` للمشغّل وعارض PDF.
 

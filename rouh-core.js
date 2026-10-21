@@ -363,11 +363,11 @@
     var plugin = capacitorPlugin;
     var isNativeRoh = function () {
         try {
-            return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) || !!window.RohApp;
-        } catch (e) { return !!window.RohApp; }
+            return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) || !!window.RohApp || !!window.RohAndroid;
+        } catch (e) { return !!(window.RohApp || window.RohAndroid); }
     };
 
-    N.available = function () { return !!(window.RohApp); };
+    N.available = function () { return !!(window.RohApp || window.RohAndroid); };
     N.isCapacitor = function () {
         try { return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()); } catch (e) { return false; }
     };
@@ -380,17 +380,36 @@
         try {
             var bridge = window.RohApp;
             if (bridge && typeof bridge[name] === 'function') { bridge[name].apply(bridge, args); return true; }
+            // توافق أسماء طبقة الموقع القديمة مع واجهة RohAndroid في التطبيق المصدر.
+            var android = window.RohAndroid;
+            var nativeMethods = {
+                openVideo: 'openNativeVideoViewer',
+                openPdf: 'openNativePdfViewer',
+                enableScreenshotProtection: 'setScreenCaptureProtection',
+                disableScreenshotProtection: 'setScreenCaptureProtection'
+            };
+            if (android) {
+                var method = nativeMethods[name] || name;
+                if (typeof android[method] === 'function') {
+                    if (name === 'enableScreenshotProtection') args = [true];
+                    if (name === 'disableScreenshotProtection') args = [false];
+                    android[method].apply(android, args);
+                    return true;
+                }
+            }
         } catch (e) { /* تجاهل */ }
         return false;
     };
 
     var readyDone = false;
-    // استعداد التطبيق (تُستدعى أول شيء عند تهيئة كل صفحة): تزيل شاشة الترحيب الأصلية
+    // استعداد التطبيق: يستخدم RohAndroid.webReady كما يعرّفه تطبيق Capacitor الأصلي.
+    // لا نعلّم الجاهزية كمكتملة إلا بعد وجود الجسر، حتى تنجح المحاولات الاحتياطية لاحقاً.
     N.ready = function () {
         if (readyDone) return;
         try {
             if (typeof window.rohNativeReady === 'function') { window.rohNativeReady(); readyDone = true; return; }
             if (window.RohApp && typeof window.RohApp.ready === 'function') { window.RohApp.ready(); readyDone = true; }   // window.RohApp.ready()
+            if (window.RohAndroid && typeof window.RohAndroid.webReady === 'function') { window.RohAndroid.webReady(); readyDone = true; return; }
             var splash = capacitorPlugin('SplashScreen');
             if (splash && typeof splash.hide === 'function') { splash.hide(); readyDone = true; }
         } catch (error) { console.warn('تعذر إرسال إشارة الجاهزية للتطبيق', error); }
