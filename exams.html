@@ -639,13 +639,22 @@
     }
 
     async function loadQuizQuestions() {
+        Object.keys(quizzesCatalog).forEach(stage => { quizzesCatalog[stage] = []; });
         const { data, error } = await Rouh.sb.from('quiz_questions')
             .select('stage,subject,question,options,correct_index,sort_order').order('sort_order');
         if (error) { showToast('تعذر تحميل أسئلة الاختبارات ⚠️'); return; }
-        data.forEach(r => {
-            const sub = (quizzesCatalog[r.stage] || []).find(x => x.name === r.subject);
-            if (sub) sub.questions.push({ q: r.question, options: r.options, correct: r.correct_index });
+        (data || []).forEach(r => {
+            if (!quizzesCatalog[r.stage] || !r.subject || !Array.isArray(r.options)) return;
+            let sub = quizzesCatalog[r.stage].find(x => x.name === r.subject);
+            if (!sub) {
+                sub = { name: r.subject, desc: 'اختبار من قاعدة البيانات', icon: 'fa-book-open', grad: 'linear-gradient(135deg,#60a5fa,#2563eb)', questions: [] };
+                quizzesCatalog[r.stage].push(sub);
+            }
+            sub.questions.push({ q: r.question, options: r.options, correct: r.correct_index });
         });
+        Object.keys(quizzesCatalog).forEach(stage => quizzesCatalog[stage].sort((a, b) => a.name.localeCompare(b.name, 'ar')));
+        renderBacSubjectsGrid(document.getElementById('btnQuizLit')?.classList.contains('active') ? 'lit' : 'sci');
+        renderNinthSubjectsGrid();
     }
 
     function shuffleArr(a) {
@@ -654,190 +663,8 @@
         return r;
     }
 
-    // كتالوج المواد الكامل وشامل لكل فرع ومرحلة دراسية
-    const quizzesCatalog = {
-    "sci": [
-        {
-            "name": "الرياضيات",
-            "desc": "تحليل + جبر + هندسة",
-            "icon": "fa-square-root-variable",
-            "grad": "linear-gradient(135deg,#60a5fa,#2563eb)",
-            "questions": []
-        },
-        {
-            "name": "الفيزياء",
-            "desc": "نواسات + كهرباء",
-            "icon": "fa-atom",
-            "grad": "linear-gradient(135deg,#a78bfa,#7c3aed)",
-            "questions": []
-        },
-        {
-            "name": "الكيمياء",
-            "desc": "نووية + حرارية + عضوية",
-            "icon": "fa-flask",
-            "grad": "linear-gradient(135deg,#22d3ee,#0891b2)",
-            "questions": []
-        },
-        {
-            "name": "علم الأحياء",
-            "desc": "عصبية + وراثة",
-            "icon": "fa-dna",
-            "grad": "linear-gradient(135deg,#34d399,#059669)",
-            "questions": []
-        },
-        {
-            "name": "اللغة العربية",
-            "desc": "قصائد + قواعد",
-            "icon": "fa-feather-pointed",
-            "grad": "linear-gradient(135deg,#fb923c,#ea580c)",
-            "questions": []
-        },
-        {
-            "name": "اللغة الإنكليزية",
-            "desc": "قواعد وترجمة",
-            "icon": "fa-language",
-            "grad": "linear-gradient(135deg,#fb7185,#e11d48)",
-            "questions": []
-        },
-        {
-            "name": "اللغة الفرنسية",
-            "desc": "Grammaire & Textes",
-            "icon": "fa-spell-check",
-            "grad": "linear-gradient(135deg,#818cf8,#4f46e5)",
-            "questions": []
-        },
-        {
-            "name": "التربية الوطنية",
-            "desc": "مفاهيم وقضايا",
-            "icon": "fa-flag",
-            "grad": "linear-gradient(135deg,#2dd4bf,#0d9488)",
-            "questions": []
-        },
-        {
-            "name": "التربية الدينية",
-            "desc": "تلاوة وأحكام",
-            "icon": "fa-mosque",
-            "grad": "linear-gradient(135deg,#fbbf24,#d97706)",
-            "questions": []
-        }
-    ],
-    "lit": [
-        {
-            "name": "اللغة العربية",
-            "desc": "الأدب والبلاغة والنحو",
-            "icon": "fa-feather-pointed",
-            "grad": "linear-gradient(135deg,#34d399,#059669)",
-            "questions": []
-        },
-        {
-            "name": "الفلسفة",
-            "desc": "المعرفة والأخلاق",
-            "icon": "fa-brain",
-            "grad": "linear-gradient(135deg,#a78bfa,#7c3aed)",
-            "questions": []
-        },
-        {
-            "name": "التاريخ",
-            "desc": "تاريخ العرب الحديث",
-            "icon": "fa-scroll",
-            "grad": "linear-gradient(135deg,#fb923c,#ea580c)",
-            "questions": []
-        },
-        {
-            "name": "الجغرافيا",
-            "desc": "طبيعية وبشرية",
-            "icon": "fa-earth-asia",
-            "grad": "linear-gradient(135deg,#60a5fa,#2563eb)",
-            "questions": []
-        },
-        {
-            "name": "اللغة الإنكليزية",
-            "desc": "Textes & Grammar",
-            "icon": "fa-language",
-            "grad": "linear-gradient(135deg,#fb7185,#e11d48)",
-            "questions": []
-        },
-        {
-            "name": "اللغة الفرنسية",
-            "desc": "Français",
-            "icon": "fa-spell-check",
-            "grad": "linear-gradient(135deg,#818cf8,#4f46e5)",
-            "questions": []
-        },
-        {
-            "name": "التربية الوطنية",
-            "desc": "قضايا وطنية",
-            "icon": "fa-flag",
-            "grad": "linear-gradient(135deg,#2dd4bf,#0d9488)",
-            "questions": []
-        },
-        {
-            "name": "التربية الدينية",
-            "desc": "أحكام وعقيدة",
-            "icon": "fa-mosque",
-            "grad": "linear-gradient(135deg,#fbbf24,#d97706)",
-            "questions": []
-        }
-    ],
-    "ninth": [
-        {
-            "name": "الرياضيات",
-            "desc": "جبر وهندسة",
-            "icon": "fa-compass-drafting",
-            "grad": "linear-gradient(135deg,#60a5fa,#2563eb)",
-            "questions": []
-        },
-        {
-            "name": "العلوم العامة",
-            "desc": "أجهزة جسم الإنسان",
-            "icon": "fa-microscope",
-            "grad": "linear-gradient(135deg,#34d399,#059669)",
-            "questions": []
-        },
-        {
-            "name": "الفيزياء والكيمياء",
-            "desc": "كهرباء ومادة",
-            "icon": "fa-bolt",
-            "grad": "linear-gradient(135deg,#22d3ee,#0891b2)",
-            "questions": []
-        },
-        {
-            "name": "اللغة العربية",
-            "desc": "قواعد ونصوص",
-            "icon": "fa-book-open",
-            "grad": "linear-gradient(135deg,#a78bfa,#7c3aed)",
-            "questions": []
-        },
-        {
-            "name": "الاجتماعيات",
-            "desc": "تاريخ وجغرافيا",
-            "icon": "fa-globe",
-            "grad": "linear-gradient(135deg,#fb923c,#ea580c)",
-            "questions": []
-        },
-        {
-            "name": "اللغة الإنكليزية",
-            "desc": "English 9th",
-            "icon": "fa-language",
-            "grad": "linear-gradient(135deg,#fb7185,#e11d48)",
-            "questions": []
-        },
-        {
-            "name": "اللغة الفرنسية",
-            "desc": "Français 9e",
-            "icon": "fa-spell-check",
-            "grad": "linear-gradient(135deg,#818cf8,#4f46e5)",
-            "questions": []
-        },
-        {
-            "name": "التربية الدينية",
-            "desc": "تلاوة وأحكام",
-            "icon": "fa-mosque",
-            "grad": "linear-gradient(135deg,#fbbf24,#d97706)",
-            "questions": []
-        }
-    ]
-};
+    // لا يوجد كتالوج تجريبي ثابت؛ تُنشأ المواد والأسئلة من صفوف قاعدة البيانات فقط.
+    const quizzesCatalog = { sci: [], lit: [], ninth: [] };
     // الأسئلة تُحمَّل من جدول quiz_questions
 
     function switchQuizView(viewId) {
@@ -871,29 +698,29 @@
     function renderBacSubjectsGrid(branchKey) {
         const list = quizzesCatalog[branchKey] || [];
         const grid = document.getElementById('bacSubjectsGridList');
-        grid.innerHTML = list.map((sub, idx) => `
+        grid.innerHTML = list.length ? list.map((sub, idx) => `
             <div class="quiz-sub-card" style="--sub-grad:${sub.grad};" onclick="startQuizSession('${branchKey}', ${idx}, 'quizViewBacBranch')">
-                <div class="quiz-sub-ico"><i class="fa-solid ${sub.icon}"></i></div>
+                <div class="quiz-sub-ico"><i class="fa-solid ${Rouh.esc(sub.icon)}"></i></div>
                 <div class="quiz-sub-txt">
-                    <h6>${sub.name}</h6>
-                    <span>${sub.desc}</span>
+                    <h6>${Rouh.esc(sub.name)}</h6>
+                    <span>${sub.questions.length} سؤال</span>
                 </div>
             </div>
-        `).join('');
+        `).join('') : '<p class="quiz-empty-state">لا توجد اختبارات مضافة لهذا الفرع بعد.</p>';
     }
 
     function renderNinthSubjectsGrid() {
         const list = quizzesCatalog['ninth'] || [];
         const grid = document.getElementById('ninthSubjectsGridList');
-        grid.innerHTML = list.map((sub, idx) => `
+        grid.innerHTML = list.length ? list.map((sub, idx) => `
             <div class="quiz-sub-card" style="--sub-grad:${sub.grad};" onclick="startQuizSession('ninth', ${idx}, 'quizViewNinthSubjects')">
-                <div class="quiz-sub-ico"><i class="fa-solid ${sub.icon}"></i></div>
+                <div class="quiz-sub-ico"><i class="fa-solid ${Rouh.esc(sub.icon)}"></i></div>
                 <div class="quiz-sub-txt">
-                    <h6>${sub.name}</h6>
-                    <span>${sub.desc}</span>
+                    <h6>${Rouh.esc(sub.name)}</h6>
+                    <span>${sub.questions.length} سؤال</span>
                 </div>
             </div>
-        `).join('');
+        `).join('') : '<p class="quiz-empty-state">لا توجد اختبارات مضافة للصف التاسع بعد.</p>';
     }
 
     // ==================== بدء الاختبار الفعلي في واجهة منفصلة ====================

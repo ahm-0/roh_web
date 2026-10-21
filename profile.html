@@ -1042,13 +1042,12 @@
                     <span id="userThoughtText">تحدث عن ما جرى</span>
                 </div>
 
-                <div class="tt-avatar-circle" onclick="document.getElementById('avatarFileInp').click()">
+                <div class="tt-avatar-circle">
                     <img id="profileAvatarImg" src="https://i.ibb.co/whHk6hcT/IMG-20261011-WA0031.jpg" alt="صورة الملف الشخصي">
                     <div class="tt-cyan-plus" title="تغيير الصورة">
                         <i class="fa-solid fa-plus"></i>
                     </div>
                 </div>
-                <input type="file" id="avatarFileInp" accept="image/*" style="display:none;" onchange="handleAvatarUpload(event)">
             </div>
 
         </div>
@@ -1210,13 +1209,13 @@
             </div>
 
             <!-- 1. قسم بوابة المشرفين (قابل للربط بـ go:supervisor) -->
-            <div class="settings-group-title" data-role="staff">
+            <div class="settings-group-title" data-role="content">
                 <i class="fa-solid fa-user-shield" style="color:var(--rouh-green);"></i> الإدارة والإشراف
             </div>
-            <div class="supervisor-portal-box" data-role="staff" onclick="triggerGoNav('supervisor', this)">
+            <div class="supervisor-portal-box" data-role="content" onclick="triggerGoNav('supervisor', this)">
                 <div class="sup-info">
-                    <h5><i class="fa-solid fa-shield-halved"></i> بوابة المشرفين</h5>
-                    <p>الدخول المخصص لمشرفي وأساتذة فريق روح التعليمي لإدارة المحتوى والملفات</p>
+                    <h5><i class="fa-solid fa-shield-halved"></i> إدارة المحتوى والإشراف</h5>
+                    <p>الدخول لإدارة المحتوى المسموح به لهذا الحساب وفق صلاحيات المشرف</p>
                 </div>
                 <span class="sup-enter-btn">دخول البوابة <i class="fa-solid fa-arrow-left"></i></span>
             </div>
@@ -1454,7 +1453,6 @@
             study_sessions: userProfile.studySessions,
             points: userProfile.points,
             last_streak_date: userProfile.lastStreakDate || null,
-            avatar_url: userProfile.avatar === Rouh.DEFAULT_AVATAR ? null : userProfile.avatar
         };
         const { error } = await Rouh.sb.from('profiles').update(patch).eq('id', Rouh.me.id);
         if (error) {
@@ -1743,22 +1741,7 @@
     }
 
     // ==================== رفع صورة شخصية جديدة ====================
-    async function handleAvatarUpload(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        try {
-            showToast('جارٍ رفع الصورة...');
-            const blob = await Rouh.compressImage(file, 512, 0.85);
-            const url = await Rouh.uploadFile('avatars', blob, '', 'jpg');
-            userProfile.avatar = url;
-            if (await saveProfileState()) {
-                renderProfileData();
-                showToast('تم تحديث صورتك الشخصية ✨');
-            }
-        } catch (err) {
-            showToast('تعذر رفع الصورة، تأكد أنها بصيغة صورة صالحة ⚠️');
-        }
-    }
+    async function handleAvatarUpload(event) { if (event && event.target) event.target.value = ''; showToast('إضافة الصور الشخصية معطّلة.'); }
 
     // ==================== النوافذ التفاعلية ====================
     function showPopup(html) {

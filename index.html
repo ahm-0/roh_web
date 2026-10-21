@@ -652,6 +652,7 @@
         .srv-mini-btn span { font-size: 0.68rem; font-weight: 800; color: var(--text-primary); display: block; }
 
         .subjects-chips-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+        .empty-content { grid-column: 1 / -1; text-align: center; color: var(--text-secondary); padding: 18px 10px; font-size: 0.78rem; }
         .subject-item-btn {
             background: var(--bg-card); border: 1px solid var(--border-light); border-radius: 18px; padding: 12px 10px;
             display: flex; align-items: center; gap: 10px; cursor: pointer; box-shadow: var(--card-shadow); transition: transform 0.15s ease;
@@ -1339,6 +1340,9 @@
                     <i class="fa-solid fa-arrow-right"></i> الرئيسية
                 </button>
             </div>
+            <h5 style="margin:14px 4px 8px;font-size:.86rem;font-weight:900;">الملخصات</h5>
+            <div id="pageSummariesContainer" class="colorful-books-grid"></div>
+            <h5 style="margin:18px 4px 8px;font-size:.86rem;font-weight:900;">النوط</h5>
             <div id="pageNotesContainer" class="colorful-books-grid"></div>
         </section>
 
@@ -1576,39 +1580,7 @@
         ninth: 'الصف التاسع الأساسي'
     };
 
-    const stageSubjectsCatalog = {
-        sci: [
-            { name: 'الرياضيات', desc: 'تحليل + جبر + هندسة', icon: 'fa-square-root-variable', grad: 'linear-gradient(135deg,#60a5fa,#2563eb)', soft: 'rgba(59,130,246,0.25)' },
-            { name: 'الفيزياء', desc: 'نواسات + كهرباء + إلكترونيات', icon: 'fa-atom', grad: 'linear-gradient(135deg,#a78bfa,#7c3aed)', soft: 'rgba(139,92,246,0.25)' },
-            { name: 'الكيمياء', desc: 'نووية + حرارية + عضوية', icon: 'fa-flask', grad: 'linear-gradient(135deg,#22d3ee,#0891b2)', soft: 'rgba(6,182,212,0.25)' },
-            { name: 'علم الأحياء', desc: 'عصبية + مستقبلات + وراثة', icon: 'fa-dna', grad: 'linear-gradient(135deg,#34d399,#059669)', soft: 'rgba(16,185,129,0.25)' },
-            { name: 'اللغة العربية', desc: 'قصائد + قواعد + تعبير', icon: 'fa-feather-pointed', grad: 'linear-gradient(135deg,#fb923c,#ea580c)', soft: 'rgba(249,115,22,0.25)' },
-            { name: 'اللغة الإنكليزية', desc: 'نصوص + قواعد + أزمنة', icon: 'fa-language', grad: 'linear-gradient(135deg,#fb7185,#e11d48)', soft: 'rgba(244,63,94,0.25)' },
-            { name: 'اللغة الفرنسية', desc: 'نصوص + قواعد + محادثة', icon: 'fa-spell-check', grad: 'linear-gradient(135deg,#818cf8,#4f46e5)', soft: 'rgba(99,102,241,0.25)' },
-            { name: 'التربية الوطنية', desc: 'مفاهيم وقضايا وطنية', icon: 'fa-flag', grad: 'linear-gradient(135deg,#2dd4bf,#0d9488)', soft: 'rgba(20,184,166,0.25)' },
-            { name: 'التربية الدينية', desc: 'تلاوة + أحاديث + أحكام', icon: 'fa-mosque', grad: 'linear-gradient(135deg,#fbbf24,#d97706)', soft: 'rgba(245,158,11,0.25)' }
-        ],
-        lit: [
-            { name: 'اللغة العربية', desc: 'الأدب والشعر + البلاغة والنحو', icon: 'fa-feather-pointed', grad: 'linear-gradient(135deg,#34d399,#059669)', soft: 'rgba(16,185,129,0.25)' },
-            { name: 'الفلسفة', desc: 'المعرفة + الأخلاق + المقالات', icon: 'fa-brain', grad: 'linear-gradient(135deg,#a78bfa,#7c3aed)', soft: 'rgba(139,92,246,0.25)' },
-            { name: 'التاريخ', desc: 'تاريخ العرب والعالم الحديث', icon: 'fa-scroll', grad: 'linear-gradient(135deg,#fb923c,#ea580c)', soft: 'rgba(249,115,22,0.25)' },
-            { name: 'الجغرافيا', desc: 'طبيعية + بشرية + اقتصادية', icon: 'fa-earth-asia', grad: 'linear-gradient(135deg,#60a5fa,#2563eb)', soft: 'rgba(59,130,246,0.25)' },
-            { name: 'اللغة الإنكليزية', desc: 'نصوص + قواعد + مواضيع', icon: 'fa-language', grad: 'linear-gradient(135deg,#fb7185,#e11d48)', soft: 'rgba(244,63,94,0.25)' },
-            { name: 'اللغة الفرنسية', desc: 'نصوص + قواعد + مواضيع', icon: 'fa-spell-check', grad: 'linear-gradient(135deg,#818cf8,#4f46e5)', soft: 'rgba(99,102,241,0.25)' },
-            { name: 'التربية الوطنية', desc: 'مفاهيم وقضايا وطنية', icon: 'fa-flag', grad: 'linear-gradient(135deg,#22d3ee,#0891b2)', soft: 'rgba(6,182,212,0.25)' },
-            { name: 'التربية الدينية', desc: 'تلاوة + أحاديث + أحكام', icon: 'fa-mosque', grad: 'linear-gradient(135deg,#fbbf24,#d97706)', soft: 'rgba(245,158,11,0.25)' }
-        ],
-        ninth: [
-            { name: 'الرياضيات', desc: 'الجبر + الهندسة المستوية', icon: 'fa-compass-drafting', grad: 'linear-gradient(135deg,#60a5fa,#2563eb)', soft: 'rgba(59,130,246,0.25)' },
-            { name: 'العلوم العامة', desc: 'أجهزة جسم الإنسان والبيئة', icon: 'fa-microscope', grad: 'linear-gradient(135deg,#34d399,#059669)', soft: 'rgba(16,185,129,0.25)' },
-            { name: 'الفيزياء والكيمياء', desc: 'الكهرباء + الميكانيك + التفاعلات', icon: 'fa-bolt', grad: 'linear-gradient(135deg,#22d3ee,#0891b2)', soft: 'rgba(6,182,212,0.25)' },
-            { name: 'اللغة العربية', desc: 'قواعد ونصوص وإملاء', icon: 'fa-book-open', grad: 'linear-gradient(135deg,#a78bfa,#7c3aed)', soft: 'rgba(139,92,246,0.25)' },
-            { name: 'الاجتماعيات', desc: 'تاريخ + جغرافيا + تربية وطنية', icon: 'fa-globe', grad: 'linear-gradient(135deg,#fb923c,#ea580c)', soft: 'rgba(249,115,22,0.25)' },
-            { name: 'اللغة الإنكليزية', desc: 'قواعد ومفردات ومواضيع', icon: 'fa-language', grad: 'linear-gradient(135deg,#fb7185,#e11d48)', soft: 'rgba(244,63,94,0.25)' },
-            { name: 'اللغة الفرنسية', desc: 'قواعد وتمارين شاملة', icon: 'fa-spell-check', grad: 'linear-gradient(135deg,#818cf8,#4f46e5)', soft: 'rgba(99,102,241,0.25)' },
-            { name: 'التربية الدينية', desc: 'عقيدة وأحكام وتلاوة', icon: 'fa-mosque', grad: 'linear-gradient(135deg,#fbbf24,#d97706)', soft: 'rgba(245,158,11,0.25)' }
-        ]
-    };
+    const stageSubjectsCatalog = { sci: [], lit: [], ninth: [] };
 
     let booksAndNotesData = []; // تُحمَّل من جدول library_items
 
@@ -1870,45 +1842,46 @@
     function renderBacSubjectsGrid(branchKey) {
         const list = stageSubjectsCatalog[branchKey] || [];
         const grid = document.getElementById('bacSubjectsGrid');
-        grid.innerHTML = list.map(sub => `
-            <div class="subject-item-btn" style="--sub-grad:${sub.grad}; --sub-soft:${sub.soft};" onclick="openSubjectSeparateView('${sub.name}', '${sub.desc}', '${sub.icon}', '${sub.grad}', 'stage-bac')">
+        grid.innerHTML = list.length ? list.map((sub, idx) => `
+            <div class="subject-item-btn" data-subject-index="${idx}" style="--sub-grad:${sub.grad}; --sub-soft:${sub.soft};">
                 <div class="subject-ico"><i class="fa-solid ${sub.icon}"></i></div>
-                <div class="subject-txt">
-                    <h6>${sub.name}</h6>
-                    <span>${sub.desc}</span>
-                </div>
-            </div>
-        `).join('');
+                <div class="subject-txt"><h6>${Rouh.esc(sub.name)}</h6><span>${Rouh.esc(sub.desc)}</span></div>
+            </div>`).join('') : '<p class="empty-content">لا توجد مواد ذات محتوى مضاف لهذه المرحلة بعد.</p>';
+        grid.querySelectorAll('[data-subject-index]').forEach(el => el.addEventListener('click', () => {
+            const sub = list[Number(el.dataset.subjectIndex)];
+            openSubjectSeparateView(sub.name, sub.desc, sub.icon, sub.grad, 'stage-bac');
+        }));
     }
 
     function renderNinthSubjectsGrid() {
-        const list = stageSubjectsCatalog['ninth'] || [];
+        const list = stageSubjectsCatalog.ninth || [];
         const grid = document.getElementById('ninthSubjectsGrid');
-        grid.innerHTML = list.map(sub => `
-            <div class="subject-item-btn" style="--sub-grad:${sub.grad}; --sub-soft:${sub.soft};" onclick="openSubjectSeparateView('${sub.name}', '${sub.desc}', '${sub.icon}', '${sub.grad}', 'stage-ninth')">
+        grid.innerHTML = list.length ? list.map((sub, idx) => `
+            <div class="subject-item-btn" data-subject-index="${idx}" style="--sub-grad:${sub.grad}; --sub-soft:${sub.soft};">
                 <div class="subject-ico"><i class="fa-solid ${sub.icon}"></i></div>
-                <div class="subject-txt">
-                    <h6>${sub.name}</h6>
-                    <span>${sub.desc}</span>
-                </div>
-            </div>
-        `).join('');
+                <div class="subject-txt"><h6>${Rouh.esc(sub.name)}</h6><span>${Rouh.esc(sub.desc)}</span></div>
+            </div>`).join('') : '<p class="empty-content">لا توجد مواد ذات محتوى مضاف للصف التاسع بعد.</p>';
+        grid.querySelectorAll('[data-subject-index]').forEach(el => el.addEventListener('click', () => {
+            const sub = list[Number(el.dataset.subjectIndex)];
+            openSubjectSeparateView(sub.name, sub.desc, sub.icon, sub.grad, 'stage-ninth');
+        }));
     }
 
     function openSubjectSeparateView(subName, subDesc, subIcon, subGrad, returnViewName) {
+        const e = Rouh.esc;
         activeSubjectFilter = subName;
         renderDynamicViews();
 
-        document.getElementById('subjectViewHeaderTitle').innerHTML = `<i class="fa-solid ${subIcon}" style="color:var(--rouh-green);"></i> مادة ${subName}`;
-        document.getElementById('subjectBackBtn').setAttribute('onclick', `openSeparateView('${returnViewName}')`);
+        document.getElementById('subjectViewHeaderTitle').innerHTML = `<i class="fa-solid ${e(subIcon)}" style="color:var(--rouh-green);"></i> مادة ${e(subName)}`;
+        document.getElementById('subjectBackBtn').setAttribute('onclick', `openSeparateView('${e(returnViewName)}')`);
 
         document.getElementById('subjectDetailsContent').innerHTML = `
             <div style="background:var(--bg-card); border:1px solid var(--border-light); border-radius:22px; padding:18px; text-align:center; margin-bottom:14px; box-shadow:var(--card-shadow);">
                 <div style="width:60px;height:60px;border-radius:19px;background:${subGrad};color:#ffffff;display:flex;align-items:center;justify-content:center;font-size:1.55rem;margin:0 auto 10px;">
                     <i class="fa-solid ${subIcon}"></i>
                 </div>
-                <h4 style="font-size:1.02rem; font-weight:800; margin-bottom:4px;">خدمات مادة ${subName}</h4>
-                <p style="font-size:0.78rem; color:var(--text-secondary);">${stageTitles[selectedStage]} • ${subDesc}</p>
+                <h4 style="font-size:1.02rem; font-weight:800; margin-bottom:4px;">خدمات مادة ${e(subName)}</h4>
+                <p style="font-size:0.78rem; color:var(--text-secondary);">${e(stageTitles[selectedStage])} • ${e(subDesc)}</p>
             </div>
 
             <div class="animated-lessons-list">
@@ -1916,7 +1889,7 @@
                     <div class="lesson-row-right">
                         <div class="lesson-circle-ico"><i class="fa-solid fa-book-bookmark"></i></div>
                         <div class="lesson-row-info">
-                            <h5>الكتاب المدرسي لمادة ${subName}</h5>
+                            <h5>الكتاب المدرسي لمادة ${e(subName)}</h5>
                             <p>فتح واجهة الكتب الوزارية بصيغة PDF</p>
                         </div>
                     </div>
@@ -1927,7 +1900,7 @@
                     <div class="lesson-row-right">
                         <div class="lesson-circle-ico"><i class="fa-solid fa-file-pdf"></i></div>
                         <div class="lesson-row-info">
-                            <h5>الملخصات والنوط الذهبية في ${subName}</h5>
+                            <h5>الملخصات والنوط الذهبية في ${e(subName)}</h5>
                             <p>فتح واجهة الملخصات المكثفة والمخططات</p>
                         </div>
                     </div>
@@ -1939,7 +1912,7 @@
                     <div class="lesson-row-right">
                         <div class="lesson-circle-ico"><i class="fa-solid fa-circle-play"></i></div>
                         <div class="lesson-row-info">
-                            <h5>الدروس والشروحات المصورة (${subName})</h5>
+                            <h5>الدروس والشروحات المصورة (${e(subName)})</h5>
                             <p>الانتقال إلى قسم الشروحات</p>
                         </div>
                     </div>
@@ -1950,7 +1923,7 @@
                     <div class="lesson-row-right">
                         <div class="lesson-circle-ico"><i class="fa-solid fa-clipboard-check"></i></div>
                         <div class="lesson-row-info">
-                            <h5>بنك أتمتة واختبارات ${subName}</h5>
+                            <h5>بنك أتمتة واختبارات ${e(subName)}</h5>
                             <p>الانتقال إلى قسم الاختبارات</p>
                         </div>
                     </div>
@@ -2092,20 +2065,15 @@
             return true;
         };
 
-        let allItems = booksAndNotesData.filter(filterFn);
-        if (activeSubjectFilter && allItems.length === 0) {
-            allItems = [
-                { id: '', placeholder: true, stage: selectedStage, type: 'book', badge: 'كتاب وزاري', title: `الكتاب المدرسي الكامل في ${activeSubjectFilter}`, subject: activeSubjectFilter, info: 'سيتم رفعه قريباً', accent: '#3b82f6', soft: 'rgba(59,130,246,0.14)', icon: 'fa-book' },
-                { id: '', placeholder: true, stage: selectedStage, type: 'note', badge: 'نوطة ذهبية', title: `الملخص الشامل والنوطة الذهبية في ${activeSubjectFilter}`, subject: activeSubjectFilter, info: 'سيتم رفعها قريباً', accent: '#8b5cf6', soft: 'rgba(139,92,246,0.14)', icon: 'fa-file-pdf' }
-            ];
-        }
-
+        const allItems = booksAndNotesData.filter(filterFn);
         const booksList = allItems.filter(i => i.type === 'book');
+        const summariesList = allItems.filter(i => i.type === 'summary');
         const notesList = allItems.filter(i => i.type === 'note');
         const coursesList = coursesData.filter(c => c.stage === selectedStage);
 
-        document.getElementById('pageBooksContainer').innerHTML = (booksList.length ? booksList : allItems).map(i => createCardItemHTML(i, 'books')).join('');
-        document.getElementById('pageNotesContainer').innerHTML = (notesList.length ? notesList : allItems).map(i => createCardItemHTML(i, 'notes')).join('');
+        document.getElementById('pageBooksContainer').innerHTML = booksList.length ? booksList.map(i => createCardItemHTML(i, 'books')).join('') : '<p class="empty-content">لا توجد كتب مضافة لهذه المرحلة بعد.</p>';
+        document.getElementById('pageSummariesContainer').innerHTML = summariesList.length ? summariesList.map(i => createCardItemHTML(i, 'notes')).join('') : '<p class="empty-content">لا توجد ملخصات مضافة لهذه المرحلة بعد.</p>';
+        document.getElementById('pageNotesContainer').innerHTML = notesList.length ? notesList.map(i => createCardItemHTML(i, 'notes')).join('') : '<p class="empty-content">لا توجد نوط مضافة لهذه المرحلة بعد.</p>';
         document.getElementById('pageCoursesContainer').innerHTML = coursesList.map(createCourseRowHTML).join('');
     }
 
@@ -2166,9 +2134,11 @@
 
     // ==================== تحميل المحتوى من قاعدة البيانات ====================
     async function loadHomeContent() {
-        const [lib, crs, set] = await Promise.all([
-            Rouh.sb.from('library_items').select('*').order('sort_order'),
-            Rouh.sb.from('courses').select('*').order('sort_order'),
+        const [lib, crs, quizzes, lessons, set] = await Promise.all([
+            Rouh.sb.from('library_items').select('id,stage,kind,badge,title,subject,info,accent,soft,icon,file_url').order('sort_order'),
+            Rouh.sb.from('courses').select('id,stage,title,subject,meta,accent,soft,icon').order('sort_order'),
+            Rouh.sb.from('quiz_questions').select('stage,subject').limit(1000),
+            Rouh.sb.from('lesson_videos').select('stage,subject_name').limit(1000),
             Rouh.sb.from('app_settings').select('value').eq('key', 'exam_dates').maybeSingle()
         ]);
         booksAndNotesData = (lib.data || []).map(r => ({
@@ -2179,6 +2149,21 @@
             id: r.id, stage: r.stage, title: r.title, subject: r.subject, meta: r.meta,
             accent: r.accent, soft: r.soft, icon: r.icon
         }));
+        Object.keys(stageSubjectsCatalog).forEach(stage => { stageSubjectsCatalog[stage] = []; });
+        const subjects = new Map();
+        const addSubject = (stage, name) => {
+            if (!stageSubjectsCatalog[stage] || !name) return;
+            const subjectName = String(name).trim(); if (!subjectName) return;
+            const key = stage + '|' + subjectName;
+            if (subjects.has(key)) return;
+            const sub = { name: subjectName, desc: 'المحتوى المتوفر في قاعدة البيانات', icon: 'fa-book-open', grad: 'linear-gradient(135deg,#60a5fa,#2563eb)', soft: 'rgba(59,130,246,0.14)' };
+            subjects.set(key, sub); stageSubjectsCatalog[stage].push(sub);
+        };
+        (lib.data || []).forEach(r => addSubject(r.stage, r.subject));
+        (crs.data || []).forEach(r => addSubject(r.stage, r.subject));
+        (quizzes.data || []).forEach(r => addSubject(r.stage, r.subject));
+        (lessons.data || []).forEach(r => addSubject(r.stage, r.subject_name));
+        Object.keys(stageSubjectsCatalog).forEach(stage => stageSubjectsCatalog[stage].sort((a,b) => a.name.localeCompare(b.name, 'ar')));
         const d = set.data && set.data.value;
         if (d) {
             if (d.bac) { examDatesMap.bac.target = new Date(d.bac).getTime(); setExamLabels('bac', d.bac); }
@@ -2220,11 +2205,7 @@
         Rouh.native.viewPdf(f.url, f.title);
     }
 
-    function openLibraryItem(id, returnViewName, isPlaceholder, subjectName) {
-        if (isPlaceholder || !id) {
-            openItemPreviewView('المحتوى قيد الإعداد', subjectName || 'المكتبة', 'سيتم رفعه قريباً', returnViewName);
-            return;
-        }
+    function openLibraryItem(id, returnViewName) {
         const it = booksAndNotesData.find(x => x.id === id);
         if (!it) return;
         openItemPreviewView(it.title, it.subject, it.info, returnViewName, it.fileUrl);

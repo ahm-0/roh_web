@@ -1044,10 +1044,6 @@
 
         <!-- صندوق إرسال رسالة في الدردشة العامة -->
         <div class="chat-input-bar">
-            <button class="chat-attach-btn" onclick="document.getElementById('pubImgInput').click()" title="إرفاق صورة">
-                <i class="fa-regular fa-image"></i>
-            </button>
-            <input type="file" id="pubImgInput" accept="image/*" style="display:none;" onchange="handleImageUpload(event, 'public')">
 
             <input type="text" class="chat-text-inp" id="publicMsgInput" placeholder="اكتب رسالتك (أو اسحب أي رسالة للرد عليها)..." onkeydown="if(event.key==='Enter') sendChatMessage('public');">
 
@@ -1097,10 +1093,6 @@
         </div>
 
         <div class="chat-input-bar">
-            <button class="chat-attach-btn" onclick="document.getElementById('privImgInput').click()" title="إرفاق صورة">
-                <i class="fa-regular fa-image"></i>
-            </button>
-            <input type="file" id="privImgInput" accept="image/*" style="display:none;" onchange="handleImageUpload(event, 'private')">
 
             <input type="text" class="chat-text-inp" id="privateMsgInput" placeholder="اكتب رسالة خاصة..." onkeydown="if(event.key==='Enter') sendChatMessage('private');">
 
@@ -1415,7 +1407,7 @@
             </div>
         ` : '';
 
-        const imgHTML = msg.image ? `<img src="${e(msg.image)}" class="msg-img-attachment" alt="صورة">` : '';
+        const imgHTML = ''; // لا تُعرض مرفقات الصور في الدردشة.
         const myR = myReaction(msg.id);
 
         return `
@@ -1836,24 +1828,8 @@
     }
 
     async function handleImageUpload(event, scope) {
-        const file = event.target.files[0];
-        event.target.value = '';
-        if (!file) return;
-        const isPub = scope === 'public';
-        const conv = isPub ? null : (privateChatsMap[currentPrivatePeerId] || {}).convId;
-        if (!isPub && !conv) return;
-        try {
-            showToast('جارٍ رفع الصورة...');
-            const url = await Rouh.uploadImage(file, 'chat');
-            const row = { sender_id: MY_ID, body: 'صورة مرفقة', image_url: url };
-            if (!isPub) row.conversation_id = conv;
-            const { error } = await Rouh.sb.from(isPub ? 'public_messages' : 'private_messages').insert(row);
-            if (error) throw error;
-            await reloadAllChat([isPub ? 'public' : 'private']);
-            showToast('تم إرسال الصورة 📷');
-        } catch (err) {
-            showToast('تعذر إرسال الصورة ⚠️');
-        }
+        if (event && event.target) event.target.value = '';
+        showToast('إرسال الصور معطّل في الدردشة. يمكنك إرسال رسالة نصية.');
     }
 
     function openMessageActionsModal(scope, msgId) {

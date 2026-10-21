@@ -1414,9 +1414,28 @@
     let activeChatId = null;
 
     async function loadSupervisorData() {
-        const me = await Rouh.init({ requireStaff: true });
+        const me = await Rouh.init();
         if (!me) return;
+        if (!Rouh.isStaff() && !Rouh.isContentManager()) { window.location.replace(Rouh.PAGES.home); return; }
         Rouh.applyTheme('themeToggleIcon');
+        if (!Rouh.isStaff()) {
+            Array.from(document.body.children).forEach(el => { if (el.id !== 'popupModal' && el.id !== 'toastBox') el.hidden = true; });
+            const panel = document.createElement('main');
+            panel.dir = 'rtl';
+            panel.style.cssText = 'min-height:100vh;padding:24px 16px;background:var(--bg-app);color:var(--text-primary);font-family:inherit;';
+            const available = [
+                ['question', 'إدارة أسئلة الاختبارات', 'exams'],
+                ['file', 'إدارة الكتب والملخصات والنوط', 'books'],
+                ['video', 'إدارة فيديوهات الدروس', 'lessons']
+            ].filter(item => ['sci','lit','ninth'].some(stage => item[2] === 'books'
+                ? ['books','summaries','notes'].some(section => Rouh.canManageContent(stage, section))
+                : Rouh.canManageContent(stage, item[2] === 'question' ? 'exams' : 'lessons')));
+            panel.innerHTML = `<h2 style="font-size:1.1rem;margin:0 0 8px;">إدارة المحتوى المعيّن لك</h2>
+                <p style="font-size:.82rem;color:var(--text-secondary);margin:0 0 18px;">يمكنك الإضافة ضمن الأقسام والمراحل التي منحك المشرف صلاحيتها فقط.</p>
+                ${available.map(([tab,label]) => `<button onclick="openContentManager('${tab}')" style="display:block;width:100%;margin:8px 0;padding:14px;border:0;border-radius:14px;background:var(--bg-card);color:var(--text-primary);font-weight:800;text-align:right;">${label}</button>`).join('') || '<p>لا توجد أقسام مخصصة لهذا الحساب.</p>'}`;
+            document.body.insertBefore(panel, document.getElementById('popupModal'));
+            return;
+        }
         await Promise.all([loadUsers(), loadThreads(), refreshVerifyCount()]);
         updateTopKPIs();
         renderAnalyticsChart(currentIndicatorKey);
@@ -1695,6 +1714,7 @@
                         ${roleSel}
                         <button onclick="toggleVerifyUser('${e(u.id)}')" style="border:none; background:rgba(56,189,248,0.14); color:#0ea5e9; padding:7px 10px; border-radius:10px; font-weight:800; font-size:0.72rem; cursor:pointer;">${u.verified ? 'إلغاء التوثيق' : 'توثيق'}</button>
                         <button onclick="toggleNewsPublisher('${e(u.id)}')" style="border:none; background:rgba(245,158,11,0.14); color:#d97706; padding:7px 10px; border-radius:10px; font-weight:800; font-size:0.72rem; cursor:pointer;">${u.canPublish ? 'إلغاء نشر الأخبار' : 'منح نشر الأخبار'}</button>
+                        ${Rouh.isStaff() ? `<button onclick="manageContentAccess('${e(u.id)}')" style="border:none; background:rgba(59,130,246,0.14); color:#2563eb; padding:7px 10px; border-radius:10px; font-weight:800; font-size:0.72rem; cursor:pointer;">صلاحيات المحتوى</button>` : ''}
                         <button onclick="toggleActiveUser('${e(u.id)}')" style="border:none; background:rgba(244,63,94,0.14); color:#f43f5e; padding:7px 10px; border-radius:10px; font-weight:800; font-size:0.72rem; cursor:pointer;">${u.active ? 'إيقاف' : 'تفعيل'}</button>
                         ${isAdmin ? `<button onclick="deleteUserAccount('${e(u.id)}')" title="حذف نهائي" style="border:none; background:rgba(244,63,94,0.14); color:#f43f5e; padding:7px 10px; border-radius:10px; font-size:0.72rem; cursor:pointer;"><i class="fa-solid fa-trash-can"></i></button>` : ''}
                     </div>
@@ -1733,20 +1753,68 @@
         showToast(want ? 'تم منح صلاحية نشر الأخبار ✅' : 'تم سحب صلاحية نشر الأخبار');
     }
 
+    // صلاحيات إدارة المحتوى مستقلة لكل مستخدم ومرحلة وقسم.
+    const CONTENT_SECTIONS = [['lessons', 'فيديوهات الدروس'], ['books', 'الكتب'], ['summaries', 'الملخصات'], ['notes', 'النوط'], ['exams', 'الاختبارات والأسئلة']];
+    const CONTENT_STAGES = [['all', 'كل المراحل'], ['sci', 'البكالوريا العلمي'], ['lit', 'البكالوريا الأدبي'], ['ninth', 'الصف التاسع الأساسي']];
+    async function manageContentAccess(userId) {
+        if (!Rouh.isStaff()) return;
+        showPopup(`<h4 style="font-size:0.95rem;font-weight:900;margin-bottom:10px;">صلاحيات رفع وإدارة المحتوى</h4>
+            <select id="grantSection" style="${CM_FIELD}">${cmOpts(CONTENT_SECTIONS)}</select>
+            <select id="grantStage" style="${CM_FIELD}">${cmOpts(CONTENT_STAGES)}</select>
+            <button class="btn-main-action" onclick="grantContentAccess('${Rouh.esc(userId)}')">منح الصلاحية</button>
+            <h5 style="font-size:0.8rem;font-weight:900;margin:14px 0 8px;">الصلاحيات الحالية</h5><div id="contentPermissionList">جارٍ التحميل...</div>`);
+        await loadContentAccessRows(userId);
+    }
+    async function loadContentAccessRows(userId) {
+        const box = document.getElementById('contentPermissionList'); if (!box) return;
+        const { data, error } = await Rouh.sb.from('content_upload_permissions').select('id,stage,section').eq('user_id', userId);
+        if (error) { box.textContent = 'تعذر تحميل الصلاحيات.'; return; }
+        box.innerHTML = (data || []).length ? data.map(p => {
+            const section = CONTENT_SECTIONS.find(x => x[0] === p.section)?.[1] || p.section;
+            const stage = CONTENT_STAGES.find(x => x[0] === (p.stage || 'all'))?.[1] || p.stage;
+            return `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border-light);">
+                <span style="flex:1;font-size:0.76rem;">${Rouh.esc(section)} • ${Rouh.esc(stage)}</span>
+                <button style="${CM_DEL}" onclick="revokeContentAccess('${Rouh.esc(userId)}','${Rouh.esc(p.id)}')">سحب</button>
+            </div>`;
+        }).join('') : '<p style="font-size:0.76rem;color:var(--text-secondary);">لا توجد صلاحيات مخصصة.</p>';
+    }
+    async function grantContentAccess(userId) {
+        if (!Rouh.isStaff()) return;
+        const section = document.getElementById('grantSection')?.value;
+        const stageValue = document.getElementById('grantStage')?.value;
+        const { error } = await Rouh.sb.from('content_upload_permissions').insert({
+            user_id: userId, section: section, stage: stageValue === 'all' ? null : stageValue, created_by: Rouh.me.id
+        });
+        if (error) { showToast(error.code === '23505' ? 'هذه الصلاحية ممنوحة مسبقاً' : 'تعذر منح الصلاحية ⚠️'); return; }
+        showToast('تم منح الصلاحية ✅');
+        await loadContentAccessRows(userId);
+    }
+    async function revokeContentAccess(userId, permissionId) {
+        if (!Rouh.isStaff() || !confirm('سحب هذه الصلاحية؟')) return;
+        const { error } = await Rouh.sb.from('content_upload_permissions').delete().eq('id', permissionId);
+        if (error) { showToast('تعذر سحب الصلاحية ⚠️'); return; }
+        await loadContentAccessRows(userId);
+        showToast('تم سحب الصلاحية');
+    }
+
     // ==================== إدارة المحتوى (أسئلة • ملفات • فيديوهات) ====================
-    const LESSON_CAT = {"sci":[{"id":"sci_math","name":"الرياضيات","grad":"linear-gradient(135deg,#60a5fa,#2563eb)","topics":["البحث 1: النهايات والاستمرار","البحث 2: الاشتقاق وتطبيقاته","البحث 3: المتتاليات العددية","البحث 4: التابع اللوغاريتمي والأسي","البحث 5: الأعداد العقدية","البحث 6: التحليل التوافقي والاحتمالات"]},{"id":"sci_phys","name":"الفيزياء","grad":"linear-gradient(135deg,#a78bfa,#7c3aed)","topics":["البحث 1: النواس المرن","البحث 2: النواس الفتلي والثقلي","البحث 3: ميكانيك السوائل","البحث 4: المغناطيسية والتحريض","البحث 5: التيار المتناوب الجيبي","البحث 6: الأمواج والإلكترونيات"]},{"id":"sci_chem","name":"الكيمياء","grad":"linear-gradient(135deg,#22d3ee,#0891b2)","topics":["البحث 1: الكيمياء النووية","البحث 2: الغازات والكيمياء الحرارية","البحث 3: سرعة التفاعل والتوازن","البحث 4: الحموض والأسس والأملاح","البحث 5: الكيمياء العضوية"]},{"id":"sci_bio","name":"علم الأحياء","grad":"linear-gradient(135deg,#34d399,#059669)","topics":["البحث 1: التنسيق العصبي","البحث 2: المستقبلات الحسية","البحث 3: التنسيق الهرموني","البحث 4: التكاثر عند الأحياء","البحث 5: الوراثة المندلية والبشرية"]},{"id":"sci_arab","name":"اللغة العربية","grad":"linear-gradient(135deg,#fb923c,#ea580c)","topics":["البحث 1: الأدب والقضايا الوطنية","البحث 2: الأدب الوجداني والاجتماعي","البحث 3: القواعد والنحو والإعراب","البحث 4: البلاغة والمحسنات"]},{"id":"sci_eng","name":"اللغة الإنكليزية","grad":"linear-gradient(135deg,#fb7185,#e11d48)","topics":["البحث 1: الأزمنة Tenses","البحث 2: المبني للمجهول Passive","البحث 3: الكلام المنقول Reported","البحث 4: النصوص والمواضيع"]},{"id":"sci_fr","name":"اللغة الفرنسية","grad":"linear-gradient(135deg,#818cf8,#4f46e5)","topics":["البحث 1: القواعد والأزمنة","البحث 2: الضمائر والربط","البحث 3: شرح النصوص والمواضيع"]},{"id":"sci_nat","name":"التربية الوطنية","grad":"linear-gradient(135deg,#2dd4bf,#0d9488)","topics":["البحث 1: المواطنة والدستور","البحث 2: التنمية والعلاقات الدولية"]},{"id":"sci_rel","name":"التربية الدينية","grad":"linear-gradient(135deg,#fbbf24,#d97706)","topics":["البحث 1: القرآن الكريم والتجويد","البحث 2: الحديث الشريف والعقيدة","البحث 3: الفقه والأحكام"]}],"lit":[{"id":"lit_arab","name":"اللغة العربية","grad":"linear-gradient(135deg,#34d399,#059669)","topics":["البحث 1: الشعر القومي والوطني","البحث 2: المذهب الواقعي والابتداعي","البحث 3: القواعد والنحو الشامل","البحث 4: العروض والبلاغة"]},{"id":"lit_phil","name":"الفلسفة","grad":"linear-gradient(135deg,#a78bfa,#7c3aed)","topics":["البحث 1: نظرية المعرفة","البحث 2: الأخلاق والقيم","البحث 3: الفلسفة الحديثة والمعاصرة","البحث 4: المنطق وكتابة المقالة"]},{"id":"lit_hist","name":"التاريخ","grad":"linear-gradient(135deg,#fb923c,#ea580c)","topics":["البحث 1: تاريخ سوريا الحديث","البحث 2: حركات التحرر العربية","البحث 3: القضية الفلسطينية"]},{"id":"lit_geo","name":"الجغرافيا","grad":"linear-gradient(135deg,#60a5fa,#2563eb)","topics":["البحث 1: الجغرافيا الطبيعية والمناخ","البحث 2: الجغرافيا البشرية والسكان","البحث 3: الموارد الاقتصادية"]},{"id":"lit_eng","name":"اللغة الإنكليزية","grad":"linear-gradient(135deg,#fb7185,#e11d48)","topics":["البحث 1: القواعد الشاملة","البحث 2: نصوص الكتاب والمفردات"]},{"id":"lit_fr","name":"اللغة الفرنسية","grad":"linear-gradient(135deg,#818cf8,#4f46e5)","topics":["البحث 1: قواعد اللغة الفرنسية","البحث 2: النصوص والتعبير الكتابي"]},{"id":"lit_nat","name":"التربية الوطنية","grad":"linear-gradient(135deg,#2dd4bf,#0d9488)","topics":["البحث 1: المؤسسات الدستورية","البحث 2: قضايا المجتمع المعاصر"]},{"id":"lit_rel","name":"التربية الدينية","grad":"linear-gradient(135deg,#fbbf24,#d97706)","topics":["البحث 1: التلاوة والتفسير","البحث 2: الأحكام والأخلاق الإسلامية"]}],"ninth":[{"id":"n9_math","name":"الرياضيات","grad":"linear-gradient(135deg,#60a5fa,#2563eb)","topics":["البحث 1: الأعداد والكسور والجذور","البحث 2: المعادلات والمتراجحات","البحث 3: التوابع والإحصاء","البحث 4: مبرهنة تالس والمثلثات","البحث 5: الدائرة والرباعي الدائري"]},{"id":"n9_sci","name":"العلوم العامة","grad":"linear-gradient(135deg,#34d399,#059669)","topics":["البحث 1: الجهاز الدعامي والحركي","البحث 2: الجهاز العصبي والحواس","البحث 3: الهضم والدوران والتنفس","البحث 4: التكاثر والوراثة والبيئة"]},{"id":"n9_phys","name":"الفيزياء والكيمياء","grad":"linear-gradient(135deg,#22d3ee,#0891b2)","topics":["البحث 1: الحقل المغناطيسي والكهرباء","البحث 2: عزم القوة والتوازن الميكانيكي","البحث 3: المحاليل المائية والحموض","البحث 4: التفاعلات والكيمياء العضوية"]},{"id":"n9_arab","name":"اللغة العربية","grad":"linear-gradient(135deg,#a78bfa,#7c3aed)","topics":["البحث 1: شرح وإعراب القصائد","البحث 2: المشتقات والتوابع والمنصوبات","البحث 3: الإملاء والهمزات والمعاجم"]},{"id":"n9_soc","name":"الاجتماعيات","grad":"linear-gradient(135deg,#fb923c,#ea580c)","topics":["البحث 1: جغرافية سوريا والوطن العربي","البحث 2: التاريخ الحديث والمعاصر","البحث 3: التربية الوطنية"]},{"id":"n9_eng","name":"اللغة الإنكليزية","grad":"linear-gradient(135deg,#fb7185,#e11d48)","topics":["البحث 1: القواعد والأزمنة الأساسية","البحث 2: النصوص وتشكيل السؤال"]},{"id":"n9_fr","name":"اللغة الفرنسية","grad":"linear-gradient(135deg,#818cf8,#4f46e5)","topics":["البحث 1: قواعد الصف التاسع","البحث 2: النصوص والمفردات"]},{"id":"n9_rel","name":"التربية الدينية","grad":"linear-gradient(135deg,#fbbf24,#d97706)","topics":["البحث 1: التجويد وسور القرآن","البحث 2: العقيدة والعبادات"]}]};
-    const QUIZ_SUBJECTS = {"sci":["الرياضيات","الفيزياء","الكيمياء","علم الأحياء","اللغة العربية","اللغة الإنكليزية","اللغة الفرنسية","التربية الوطنية","التربية الدينية"],"lit":["اللغة العربية","الفلسفة","التاريخ","الجغرافيا","اللغة الإنكليزية","اللغة الفرنسية","التربية الوطنية","التربية الدينية"],"ninth":["الرياضيات","العلوم العامة","الفيزياء والكيمياء","اللغة العربية","الاجتماعيات","اللغة الإنكليزية","اللغة الفرنسية","التربية الدينية"]};
     const STAGE_OPTS = [['sci', 'البكالوريا العلمي'], ['lit', 'البكالوريا الأدبي'], ['ninth', 'الصف التاسع الأساسي']];
 
     function cmOpts(list, sel) {
         return list.map(o => { const v = Array.isArray(o) ? o[0] : o; const l = Array.isArray(o) ? o[1] : o;
             return `<option value="${Rouh.esc(v)}" ${v === sel ? 'selected' : ''}>${Rouh.esc(l)}</option>`; }).join('');
     }
+    function cmStagesForSection(section) { return STAGE_OPTS.filter(([stage]) => Rouh.canManageContent(stage, section)); }
+    function cmStagesForLibrary() { return STAGE_OPTS.filter(([stage]) => ['books','summaries','notes'].some(section => Rouh.canManageContent(stage, section))); }
     const CM_FIELD = 'width:100%; padding:9px 11px; border-radius:11px; border:1.5px solid var(--border-light); background:var(--bg-app); color:var(--text-primary); font-size:0.8rem; margin-bottom:8px;';
     const CM_DEL = 'border:none; background:rgba(244,63,94,0.14); color:#f43f5e; width:30px; height:30px; border-radius:9px; cursor:pointer; flex-shrink:0;';
 
     function openContentManager(tab) {
-        const tabs = [['question', 'سؤال'], ['file', 'ملف'], ['video', 'فيديو']];
+        const canSection = section => ['sci','lit','ninth'].some(stage => Rouh.canManageContent(stage, section));
+        const canFile = ['books','summaries','notes'].some(canSection);
+        const allowed = { question: canSection('exams'), file: canFile, video: canSection('lessons') };
+        if (!allowed[tab]) { showToast('لا تملك صلاحية هذا القسم ⚠️'); return; }
+        const tabs = [['question', 'سؤال'], ['file', 'ملف'], ['video', 'فيديو']].filter(([key]) => allowed[key]);
         showPopup(`
             <h4 style="font-size:0.95rem; font-weight:900; margin-bottom:10px;">
                 <i class="fa-solid fa-layer-group" style="color:#f59e0b;"></i> إدارة المحتوى
@@ -1762,8 +1830,8 @@
     // ---------- أسئلة الاختبارات ----------
     function renderCmQuestion() {
         document.getElementById('cmBody').innerHTML = `
-            <select id="cmQStage" onchange="cmQStageChanged()" style="${CM_FIELD}">${cmOpts(STAGE_OPTS, 'sci')}</select>
-            <select id="cmQSubject" onchange="cmQLoadList()" style="${CM_FIELD}">${cmOpts(QUIZ_SUBJECTS.sci)}</select>
+            <select id="cmQStage" onchange="cmQStageChanged()" style="${CM_FIELD}">${cmOpts(cmStagesForSection('exams'))}</select>
+            <input type="text" id="cmQSubject" oninput="cmQLoadList()" maxlength="100" placeholder="اسم المادة (يُنشأ من قاعدة البيانات)" style="${CM_FIELD}">
             <textarea id="cmQText" rows="2" maxlength="500" placeholder="نص السؤال" style="${CM_FIELD}"></textarea>
             ${[0, 1, 2, 3].map(i => `<input type="text" id="cmQOpt${i}" maxlength="200" placeholder="الخيار ${i + 1}${i > 1 ? ' (اختياري)' : ''}" style="${CM_FIELD}">`).join('')}
             <select id="cmQCorrect" style="${CM_FIELD}">
@@ -1774,14 +1842,11 @@
             <div id="cmQList"></div>`;
         cmQLoadList();
     }
-    function cmQStageChanged() {
-        const st = document.getElementById('cmQStage').value;
-        document.getElementById('cmQSubject').innerHTML = cmOpts(QUIZ_SUBJECTS[st]);
-        cmQLoadList();
-    }
+    function cmQStageChanged() { cmQLoadList(); }
     async function cmQLoadList() {
-        const st = document.getElementById('cmQStage').value, sub = document.getElementById('cmQSubject').value;
+        const st = document.getElementById('cmQStage').value, sub = document.getElementById('cmQSubject').value.trim();
         const box = document.getElementById('cmQList'); if (!box) return;
+        if (!sub) { box.innerHTML = '<p style="font-size:0.76rem;color:var(--text-secondary);">اكتب اسم المادة لعرض أسئلتها.</p>'; return; }
         const { data } = await Rouh.sb.from('quiz_questions').select('id,question').eq('stage', st).eq('subject', sub).order('sort_order');
         box.innerHTML = (data && data.length) ? data.map(q => `
             <div style="display:flex; gap:8px; align-items:center; padding:8px 0; border-bottom:1px solid var(--border-light);">
@@ -1790,10 +1855,12 @@
             </div>`).join('') : '<p style="font-size:0.76rem; color:var(--text-secondary);">لا توجد أسئلة بعد.</p>';
     }
     async function cmAddQuestion() {
-        const st = document.getElementById('cmQStage').value, sub = document.getElementById('cmQSubject').value;
+        const st = document.getElementById('cmQStage').value, sub = document.getElementById('cmQSubject').value.trim();
         const q = document.getElementById('cmQText').value.trim();
         const raw = [0, 1, 2, 3].map(i => document.getElementById('cmQOpt' + i).value.trim());
         const correctRaw = parseInt(document.getElementById('cmQCorrect').value, 10);
+        if (!sub) { showToast('اكتب اسم المادة ⚠️'); return; }
+        if (!Rouh.canManageContent(st, 'exams')) { showToast('لا تملك صلاحية الاختبارات لهذه المرحلة ⚠️'); return; }
         if (!q) { showToast('اكتب نص السؤال ⚠️'); return; }
         if (!raw[correctRaw]) { showToast('الخيار المحدد كإجابة صحيحة فارغ ⚠️'); return; }
         const options = raw.filter(Boolean);
@@ -1811,28 +1878,35 @@
     // ---------- الكتب والنوط (روابط درايف) ----------
     function renderCmFile() {
         document.getElementById('cmBody').innerHTML = `
-            <select id="cmFStage" onchange="cmFStageChanged()" style="${CM_FIELD}">${cmOpts(STAGE_OPTS, 'sci')}</select>
-            <select id="cmFKind" style="${CM_FIELD}"><option value="book">كتاب</option><option value="note">نوطة / ملخص</option></select>
-            <select id="cmFSubject" style="${CM_FIELD}">${cmOpts(QUIZ_SUBJECTS.sci)}</select>
+            <select id="cmFStage" onchange="cmFStageChanged()" style="${CM_FIELD}">${cmOpts(cmStagesForLibrary())}</select>
+            <select id="cmFKind" style="${CM_FIELD}" onchange="cmFLoadList()"></select>
+            <input type="text" id="cmFSubject" maxlength="100" placeholder="المادة" style="${CM_FIELD}">
             <input type="text" id="cmFTitle" maxlength="120" placeholder="عنوان الملف" style="${CM_FIELD}">
             <input type="text" id="cmFInfo" maxlength="60" placeholder="وصف قصير (مثال: 54 صفحة PDF)" style="${CM_FIELD}">
-            <input type="url" id="cmFLink" dir="ltr" placeholder="رابط Google Drive" style="${CM_FIELD}">
+            <input type="url" id="cmFLink" dir="ltr" placeholder="رابط الملف (Google Drive أو رابط HTTPS)" style="${CM_FIELD}">
             <p style="font-size:0.68rem; color:var(--text-secondary); margin:-2px 0 8px;">اجعل الملف «أي شخص لديه الرابط يمكنه العرض».</p>
             <button class="btn-main-action" onclick="cmAddFile()"><i class="fa-solid fa-plus"></i> إضافة الملف</button>
             <h5 style="font-size:0.8rem; font-weight:900; margin:14px 0 8px;">الملفات الحالية لهذه المرحلة</h5>
             <div id="cmFList"></div>`;
-        cmFLoadList();
+        cmFStageChanged();
     }
     function cmFStageChanged() {
-        const st = document.getElementById('cmFStage').value;
-        document.getElementById('cmFSubject').innerHTML = cmOpts(QUIZ_SUBJECTS[st]);
+        const stage = document.getElementById('cmFStage').value;
+        const kindSel = document.getElementById('cmFKind');
+        const old = kindSel.value;
+        const kinds = [['book','كتاب','books'],['summary','ملخص','summaries'],['note','نوطة','notes']]
+            .filter(x => Rouh.canManageContent(stage, x[2]));
+        kindSel.innerHTML = kinds.map(([value,label]) => `<option value="${value}">${label}</option>`).join('');
+        if (kinds.some(x => x[0] === old)) kindSel.value = old;
         cmFLoadList();
     }
     async function cmFLoadList() {
         const st = document.getElementById('cmFStage').value;
         const box = document.getElementById('cmFList'); if (!box) return;
-        const { data } = await Rouh.sb.from('library_items').select('id,title,subject,file_url').eq('stage', st).order('sort_order');
-        box.innerHTML = (data && data.length) ? data.map(it => `
+        const { data } = await Rouh.sb.from('library_items').select('id,title,subject,file_url,kind').eq('stage', st).order('sort_order');
+        const sectionForKind = { book: 'books', summary: 'summaries', note: 'notes' };
+        const visibleItems = (data || []).filter(it => Rouh.canManageContent(st, sectionForKind[it.kind]));
+        box.innerHTML = visibleItems.length ? visibleItems.map(it => `
             <div style="display:flex; gap:8px; align-items:center; padding:8px 0; border-bottom:1px solid var(--border-light);">
                 <span style="flex:1; font-size:0.76rem; line-height:1.6;">${Rouh.esc(it.title)} <span style="color:var(--text-secondary);">• ${Rouh.esc(it.subject)}${it.file_url ? '' : ' • بلا رابط'}</span></span>
                 <button style="${CM_DEL}" onclick="cmDelete('library_items','${Rouh.esc(it.id)}', cmFLoadList)"><i class="fa-solid fa-trash-can"></i></button>
@@ -1840,18 +1914,22 @@
     }
     async function cmAddFile() {
         const st = document.getElementById('cmFStage').value, kind = document.getElementById('cmFKind').value;
-        const subject = document.getElementById('cmFSubject').value;
+        const subject = document.getElementById('cmFSubject').value.trim();
         const title = document.getElementById('cmFTitle').value.trim();
         const info = document.getElementById('cmFInfo').value.trim();
-        const drive = Rouh.driveInfo(document.getElementById('cmFLink').value);
-        if (!title) { showToast('اكتب عنوان الملف ⚠️'); return; }
-        if (!drive) { showToast('أدخل رابط Google Drive صحيحاً ⚠️'); return; }
+        const rawUrl = document.getElementById('cmFLink').value.trim();
+        let fileUrl = ''; try { const u = new URL(rawUrl); if (u.protocol === 'https:' || u.protocol === 'http:') fileUrl = u.href; } catch (e) {}
+        const section = kind === 'book' ? 'books' : kind === 'summary' ? 'summaries' : 'notes';
+        if (!Rouh.canManageContent(st, section)) { showToast('لا تملك صلاحية هذا النوع من المحتوى لهذه المرحلة ⚠️'); return; }
+        if (!title || !subject) { showToast('أدخل عنوان الملف والمادة ⚠️'); return; }
+        if (!fileUrl) { showToast('أدخل رابط ملف صحيحاً يبدأ بـ HTTPS أو HTTP ⚠️'); return; }
         const isBook = kind === 'book';
+        const kindLabel = kind === 'book' ? 'كتاب' : kind === 'summary' ? 'ملخص' : 'نوطة';
         const cnt = await Rouh.sb.from('library_items').select('id', { count: 'exact', head: true });
         const { error } = await Rouh.sb.from('library_items').insert({
-            stage: st, kind: kind, badge: isBook ? 'كتاب' : 'نوطة', title: title, subject: subject, info: info || 'ملف على Google Drive',
-            accent: isBook ? '#3b82f6' : '#10b981', soft: isBook ? 'rgba(59,130,246,0.14)' : 'rgba(16,185,129,0.14)',
-            icon: isBook ? 'fa-book' : 'fa-file-pdf', file_url: drive.link, sort_order: (cnt.count || 0) + 100
+            stage: st, kind: kind, badge: kindLabel, title: title, subject: subject, info: info || kindLabel,
+            accent: isBook ? '#3b82f6' : kind === 'summary' ? '#8b5cf6' : '#10b981', soft: isBook ? 'rgba(59,130,246,0.14)' : kind === 'summary' ? 'rgba(139,92,246,0.14)' : 'rgba(16,185,129,0.14)',
+            icon: isBook ? 'fa-book' : 'fa-file-lines', file_url: fileUrl, sort_order: (cnt.count || 0) + 100
         });
         if (error) { showToast('تعذر إضافة الملف (تحقق من صلاحيتك) ⚠️'); return; }
         showToast('تمت إضافة الملف ✅');
@@ -1862,11 +1940,11 @@
     // ---------- الفيديوهات (روابط درايف) ----------
     function renderCmVideo() {
         document.getElementById('cmBody').innerHTML = `
-            <select id="cmVStage" onchange="cmVStageChanged()" style="${CM_FIELD}">${cmOpts(STAGE_OPTS, 'sci')}</select>
-            <select id="cmVSubject" onchange="cmVSubjectChanged()" style="${CM_FIELD}">${LESSON_CAT.sci.map((x, i) => `<option value="${i}">${Rouh.esc(x.name)}</option>`).join('')}</select>
-            <select id="cmVTopic" style="${CM_FIELD}">${cmOpts(LESSON_CAT.sci[0].topics)}</select>
+            <select id="cmVStage" onchange="cmVStageChanged()" style="${CM_FIELD}">${cmOpts(cmStagesForSection('lessons'))}</select>
+            <input type="text" id="cmVSubject" onchange="cmVSubjectChanged()" maxlength="100" placeholder="المادة" style="${CM_FIELD}">
+            <input type="text" id="cmVTopic" maxlength="120" placeholder="عنوان البحث أو الموضوع" style="${CM_FIELD}">
             <input type="text" id="cmVTitle" maxlength="200" placeholder="عنوان الدرس" style="${CM_FIELD}">
-            <input type="url" id="cmVLink" dir="ltr" placeholder="رابط الفيديو على Google Drive" style="${CM_FIELD}">
+            <input type="url" id="cmVLink" dir="ltr" placeholder="رابط الفيديو فقط (HTTPS)" style="${CM_FIELD}">
             <p style="font-size:0.68rem; color:var(--text-secondary); margin:-2px 0 8px;">اجعل الفيديو «أي شخص لديه الرابط يمكنه العرض».</p>
             <label style="display:flex; align-items:center; gap:8px; font-size:0.76rem; font-weight:800; margin-bottom:10px; cursor:pointer;">
                 <input type="checkbox" id="cmVProtect" style="width:17px; height:17px; accent-color:var(--rouh-green);"> منع تصوير الشاشة أثناء التشغيل (داخل التطبيق)
@@ -1877,21 +1955,16 @@
         cmVLoadList();
     }
     function cmVCur() {
-        const st = document.getElementById('cmVStage').value;
-        return LESSON_CAT[st][parseInt(document.getElementById('cmVSubject').value, 10)];
+        const stage = document.getElementById('cmVStage').value;
+        const name = document.getElementById('cmVSubject').value.trim();
+        return { stage: stage, name: name, id: stage + '_' + name, grad: 'linear-gradient(135deg,#60a5fa,#2563eb)' };
     }
-    function cmVStageChanged() {
-        const st = document.getElementById('cmVStage').value;
-        document.getElementById('cmVSubject').innerHTML = LESSON_CAT[st].map((x, i) => `<option value="${i}">${Rouh.esc(x.name)}</option>`).join('');
-        cmVSubjectChanged();
-    }
-    function cmVSubjectChanged() {
-        document.getElementById('cmVTopic').innerHTML = cmOpts(cmVCur().topics);
-        cmVLoadList();
-    }
+    function cmVStageChanged() { cmVLoadList(); }
+    function cmVSubjectChanged() { cmVLoadList(); }
     async function cmVLoadList() {
         const box = document.getElementById('cmVList'); if (!box) return;
-        const { data } = await Rouh.sb.from('lesson_videos').select('id,title,topic').eq('subject_id', cmVCur().id).order('created_at', { ascending: false });
+        const cur = cmVCur(); if (!cur.name) { box.innerHTML = '<p style="font-size:0.76rem;color:var(--text-secondary);">اكتب اسم المادة لعرض فيديوهاتها.</p>'; return; }
+        const { data } = await Rouh.sb.from('lesson_videos').select('id,title,topic').eq('stage', cur.stage).eq('subject_id', cur.id).order('created_at', { ascending: false });
         box.innerHTML = (data && data.length) ? data.map(v => `
             <div style="display:flex; gap:8px; align-items:center; padding:8px 0; border-bottom:1px solid var(--border-light);">
                 <span style="flex:1; font-size:0.76rem; line-height:1.6;">${Rouh.esc(v.title)} <span style="color:var(--text-secondary);">• ${Rouh.esc(v.topic)}</span></span>
@@ -1901,12 +1974,15 @@
     async function cmAddVideo() {
         const sub = cmVCur();
         const title = document.getElementById('cmVTitle').value.trim();
-        const drive = Rouh.driveInfo(document.getElementById('cmVLink').value);
-        if (!title) { showToast('اكتب عنوان الدرس ⚠️'); return; }
-        if (!drive || drive.isFolder) { showToast('أدخل رابط فيديو صحيح من Google Drive ⚠️'); return; }
+        const topic = document.getElementById('cmVTopic').value.trim();
+        const rawUrl = document.getElementById('cmVLink').value.trim();
+        let videoUrl = ''; try { const u = new URL(rawUrl); if (u.protocol === 'https:' || u.protocol === 'http:') videoUrl = u.href; } catch (e) {}
+        if (!Rouh.canManageContent(sub.stage, 'lessons')) { showToast('لا تملك صلاحية فيديوهات الدروس لهذه المرحلة ⚠️'); return; }
+        if (!sub.name || !topic || !title) { showToast('أدخل المادة والموضوع وعنوان الفيديو ⚠️'); return; }
+        if (!videoUrl) { showToast('أدخل رابط فيديو صحيحاً ⚠️'); return; }
         const { error } = await Rouh.sb.from('lesson_videos').insert({
-            subject_id: sub.id, subject_name: sub.name, topic: document.getElementById('cmVTopic').value, title: title,
-            video_url: drive.link, grad: sub.grad, created_by: Rouh.me.id,
+            stage: sub.stage, subject_id: sub.id, subject_name: sub.name, topic: topic, title: title,
+            video_url: videoUrl, grad: sub.grad, created_by: Rouh.me.id,
             is_protected: document.getElementById('cmVProtect').checked
         });
         if (error) { showToast('تعذر إضافة الفيديو (تحقق من صلاحيتك) ⚠️'); return; }

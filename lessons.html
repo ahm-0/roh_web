@@ -1266,32 +1266,6 @@
             </div>
         </div>
 
-        <!-- الفيديو التجريبي المميز (درس النهايات) جاهز للتشغيل الفوري -->
-        <div class="section-head">
-            <h4><i class="fa-solid fa-circle-play" style="color:var(--clr-blue);"></i> الفيديو التجريبي المميز (درس النهايات)</h4>
-        </div>
-        <article class="yt-card" onclick="playLimitsDemoDirectly()">
-            <div class="yt-thumb" style="--thumb-grad:linear-gradient(135deg, #122150, #0a1230, #2563eb);">
-                <span class="yt-thumb-topic"><i class="fa-solid fa-star"></i> البحث 1: النهايات والاستمرار</span>
-                <div class="yt-play-ico"><i class="fa-solid fa-play"></i></div>
-                <div class="yt-thumb-title">درس النهايات — الرياضيات (البكالوريا العلمي)</div>
-                <span class="yt-duration">02:35</span>
-            </div>
-            <div class="yt-card-body">
-                <img src="https://i.ibb.co/whHk6hcT/IMG-20261011-WA0031.jpg" alt="فريق روح">
-                <div class="yt-card-info">
-                    <h4>درس النهايات — الشرح التفاعلي الكامل مع القوانين والأمثلة</h4>
-                    <div class="yt-card-meta">
-                        <span>منصة فريق روح التعليمي</span>
-                        <span>•</span>
-                        <span>2,480 مشاهدة</span>
-                        <span>•</span>
-                        <span>فيديو تفاعلي</span>
-                    </div>
-                </div>
-            </div>
-        </article>
-
     </main>
 
     <!-- ==================== صفحة 2: قسم البكالوريا (علمي / أدبي + المواد) ==================== -->
@@ -1364,7 +1338,7 @@
         <div class="yt-cards-stack" id="channelVideosStack"></div>
     </section>
 
-    <!-- ==================== صفحة 5: مشغل الفيديو التفاعلي (درس النهايات) ==================== -->
+    <!-- مشغل فيديوهات الدروس الواردة من قاعدة البيانات -->
     <section id="page-watch" class="app-page">
 
         <!-- حاوية المقطع مرفوعة للأعلى لتظهر العناوين تحتها بوضوح -->
@@ -1447,30 +1421,30 @@
         <!-- تفاصيل الفيديو أسفل المشغل (بدون زر مشاركة وبدون زر تنزيل الفيديو) -->
         <div class="watch-details-area">
             <div class="watch-title-row">
-                <h3 id="watchTitleText">درس النهايات — البكالوريا العلمي</h3>
+                <h3 id="watchTitleText">عنوان الدرس</h3>
                 <button class="back-pill-btn" onclick="closeWatchToChannel()" style="flex-shrink:0;">
                     <i class="fa-solid fa-arrow-right"></i> القائمة
                 </button>
             </div>
 
             <div class="watch-submeta">
-                <span id="watchViewsText">2,480 مشاهدة</span>
+                <span id="watchViewsText">0 مشاهدة</span>
                 <span>•</span>
-                <span id="watchTimeText">الآن</span>
+                <span id="watchTimeText">—</span>
                 <span>•</span>
-                <span class="watch-topic-badge" id="watchTopicText">البحث 1: النهايات والاستمرار</span>
+                <span class="watch-topic-badge" id="watchTopicText">الموضوع</span>
             </div>
 
             <!-- أزرار التفاعل (إعجاب | تعليقات | حفظ | عرض أفقي) -->
             <div class="watch-actions-bar">
                 <button class="watch-act-pill" id="watchLikePill" onclick="toggleLikeCurrentVideo()">
                     <i class="fa-regular fa-thumbs-up"></i>
-                    <span id="watchLikesCounter">315</span>
+                    <span id="watchLikesCounter">0</span>
                 </button>
 
                 <button class="watch-act-pill" onclick="openCommentsSheet()">
                     <i class="fa-regular fa-comment-dots"></i>
-                    <span>التعليقات (<span id="watchCommentsCounter">2</span>)</span>
+                    <span>التعليقات (<span id="watchCommentsCounter">0</span>)</span>
                 </button>
 
                 <button class="watch-act-pill" id="watchSavePill" onclick="toggleSaveCurrentVideo()">
@@ -1484,19 +1458,10 @@
                 </button>
             </div>
 
-            <!-- شريط فقرات درس النهايات للانتقال الفوري -->
-            <div class="scenes-strip-box">
-                <div class="scenes-strip-title">
-                    <span><i class="fa-solid fa-list-ol" style="color:var(--rouh-green);"></i> فقرات الدرس (اضغط للانتقال السريع):</span>
-                    <span id="currentSceneNameBadge" style="color:var(--rouh-green);">المقدمة</span>
-                </div>
-                <div class="scenes-chips-row" id="scenesChipsContainer"></div>
-            </div>
-
             <!-- صندوق التعليقات المصغر -->
             <div class="yt-comments-box" onclick="openCommentsSheet()">
                 <div class="yt-comments-head">
-                    <span>التعليقات والأسئلة العلمية (<span id="boxCommentsCount">2</span>)</span>
+                    <span>التعليقات والأسئلة العلمية (<span id="boxCommentsCount">0</span>)</span>
                     <i class="fa-solid fa-chevron-left" style="font-size:0.75rem; color:var(--text-secondary);"></i>
                 </div>
                 <div class="yt-comments-preview" id="boxLastCommentLine">
@@ -1571,79 +1536,8 @@
         Rouh.applyTheme('themeToggleIcon');
     }
 
-    /* =========================================================================
-       ★★★ محرك الفيديو السريع لدرس النهايات (خفيف وعالي الأداء بدون تصدير) ★★★
-       ========================================================================= */
-    const PROJECT = {
-        brand: 'فريق روح التعليمي',
-        title: 'درس النهايات — البكالوريا',
-        dir: 'rtl',
-        watermark: true,
-        progressBar: true,
-        transition: 0.4,
-        theme: {
-            bg1: '#122150', bg2: '#0a1230', bg3: '#050a1f', grid: 'rgba(59,130,246,0.07)',
-            text: '#ffffff', muted: '#94a3b8', primary: '#60a5fa', accent: '#f59e0b',
-            danger: '#ef4444', success: '#10b981', card: '#1a2a5c'
-        },
-        scenes: [
-            { name: 'المقدمة', dur: 7, items: [
-                { t: 'text', text: 'درس النهايات', size: 100, weight: 900, anim: 'scale' },
-                { t: 'line' },
-                { t: 'text', text: 'الرياضيات — البكالوريا العلمي', size: 46, color: 'primary', at: .5 },
-            ]},
-            { name: 'مفهوم النهاية', dur: 14, heading: 'مفهوم النهاية عند نقطة', items: [
-                { t: 'text', text: 'سلوك التابع {accent|f(x)} عندما تقترب {primary|x} من عدد معين', size: 46 },
-                { t: 'badges', items: [1.9, 1.99, 2, 2.01, 2.1], on: [2], hlAt: 1.4, box: 'primary', at: .5 },
-                { t: 'math', parts: ['lim f(x) = L    (x → 2)'], size: 58, color: 'accent', at: 2.0 },
-            ]},
-            { name: 'النهايات المثلثية', dur: 18, heading: 'النهايات المثلثية الشهيرة', items: [
-                { t: 'math', parts: ['lim  ', { frac: ['sin(x)', 'x'], color: 'accent' }, '  =  ', { s: '1', color: 'success', bold: true }], size: 64 },
-                { t: 'text', text: 'عندما تسعى x إلى الصفر (بالراديان)', size: 40, color: 'muted', at: 1.3 },
-                { t: 'math', parts: ['lim  ', { frac: ['tan(x)', 'x'], color: 'primary' }, '  =  ', { s: '1', color: 'success', bold: true }], size: 60, at: 2.3 },
-            ]},
-            { name: 'حالات عدم التعيين', dur: 18, heading: 'حالات عدم التعيين الأربع', items: [
-                { t: 'text', text: 'تتطلب {accent|إزالة عدم التعيين} بالتحليل أو المرافق أو العامل المشترك:', size: 42 },
-                { t: 'cards', items: [
-                    { big: '0 / 0', small: 'تحليل أو مرافق', color: 'danger' },
-                    { big: '∞ / ∞', small: 'الحد المسيطر', color: 'accent' }
-                ], at: .6 },
-                { t: 'math', parts: ['∞ − ∞     ,     0 × ∞'], size: 56, color: 'primary', at: 1.8 },
-            ]},
-            { name: 'نهاية تابع كسري', dur: 25, heading: 'نهاية تابع كسري عند اللانهاية', items: [
-                { t: 'math', parts: ['lim ', { frac: ['أكبر حد في البسط', 'أكبر حد في المقام'] }], size: 58 },
-                { t: 'text', text: 'مثال تطبيقي عندما تسعى x إلى +∞ :', size: 40, color: 'muted', at: 1.6 },
-                { t: 'math', parts: ['lim ', { frac: ['6x² + 5x', '2x² − 1'], color: 'accent' }, ' = ', { frac: ['6x²', '2x²'], color: 'primary' }, ' = ', { s: '3', color: 'success', bold: true }], size: 58, at: 2.6 },
-                { t: 'text', text: '⚠ نختصر x² من البسط والمقام فنحصل على النتيجة مباشرة', size: 34, color: 'muted', at: 4.5 },
-            ]},
-            { name: 'إزالة عدم التعيين', dur: 20, heading: 'مثال: إزالة عدم التعيين (0 / 0)', items: [
-                { t: 'math', parts: ['lim ', { frac: ['x² − 9', 'x − 3'], color: 'danger' }, '   (x → 3)'], size: 60 },
-                { t: 'text', text: 'نحلل البسط إلى جداء قوسين (مطابقة تربيعية):', size: 40, color: 'muted', at: 1.4 },
-                { t: 'math', parts: ['lim (x + 3) = 3 + 3 = ', { s: '6', color: 'success', bold: true }], size: 60, at: 2.4 },
-            ]},
-            { name: 'مبرهنة الإحاطة', dur: 18, heading: 'مبرهنة الإحاطة (الحصر)', items: [
-                { t: 'meter', labels: ['g(x)', 'f(x)', 'h(x)'] },
-                { t: 'cards', items: [
-                    { big: 'g → L', small: 'نهاية الطرف الأصغر', color: 'primary' },
-                    { big: 'h → L', small: 'نهاية الطرف الأكبر', color: 'success' }
-                ], at: .5 },
-                { t: 'math', parts: ['g(x) ≤ f(x) ≤ h(x)  ⇒  lim f(x) = L'], size: 50, color: 'accent', at: 1.8 },
-            ]},
-            { name: 'الاستمرار عند نقطة', dur: 17, heading: 'شرط الاستمرار عند نقطة', items: [
-                { t: 'balls', items: [{ c: '#3b82f6', n: 2 }, { c: '#10b981', n: 1 }], hl: 1, hlAt: 1.6, box: true },
-                { t: 'text', text: '{primary|النهاية من اليمين واليسار}  =  {success|صورة النقطة f(a)}', size: 44, at: .7 },
-                { t: 'math', parts: ['lim f(x) = f(a)   (x → a)'], size: 56, color: 'success', at: 1.5 },
-            ]},
-            { name: 'الخلاصة', dur: 18, items: [
-                { t: 'text', text: 'خلاصة النهايات', size: 86, weight: 900, anim: 'scale' },
-                { t: 'line' },
-                { t: 'text', text: 'ابدأ بـ {accent|التعويض المباشر} أولًا،\nوإن ظهرت حالة {danger|عدم تعيين}،\nاستخدم {success|الحد المسيطر أو التحليل أو المرافق}.', size: 46, lh: 1.65, at: .5 },
-                { t: 'text', text: 'بالتوفيق لكم جميعًا 🌟', size: 44, color: 'accent', at: 1.8 },
-            ]},
-        ],
-    };
-
-    const $ = id => document.getElementById(id);
+    // لا توجد مشاهد فيديو افتراضية؛ المشغل يعرض روابط الفيديو القادمة من قاعدة البيانات فقط.
+    const PROJECT = { transition: 0, theme: {}, scenes: [] };
     const SC = PROJECT.scenes, T = PROJECT.theme;
     const FONT = 'system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif';
     const MATH_FONT = 'Georgia, serif';
@@ -1900,10 +1794,11 @@
     function updatePlayIconsUI() {
         const btn = $('playPauseIconBtn');
         if (btn) btn.innerHTML = `<i class="fa-solid ${playing ? 'fa-pause' : 'fa-play'}"></i>`;
-        $('bigPlay').classList.toggle('hide', playing);
+        if ($('bigPlay')) $('bigPlay').classList.toggle('hide', playing);
     }
 
     function renderFrameAt(t) {
+        if (!SC.length) return;
         t = clamp(t, 0, total - .001);
         draw(t);
         const p = clamp(t / total) * 100;
@@ -1934,6 +1829,7 @@
     }
 
     function playEngine() {
+        if (!currentPlayingVideo || !SC.length) return;
         if (nowTime() >= total - .05) base = 0;
         else base = nowTime();
         clockStart = performance.now();
@@ -1945,15 +1841,14 @@
     }
 
     function pauseEngine() {
-        base = nowTime();
-        playing = false;
-        cancelAnimationFrame(raf);
-        updatePlayIconsUI();
-        renderFrameAt(base);
+        const vidEl = $('lessonVideoEl');
+        if (currentPlayingVideo && currentPlayingVideo.videoUrl && vidEl && vidEl.style.display !== 'none') vidEl.pause();
+        if (!SC.length) { playing = false; updatePlayIconsUI(); return; }
+        base = nowTime(); playing = false; cancelAnimationFrame(raf); updatePlayIconsUI(); renderFrameAt(base);
     }
 
     function toggleEnginePlay() {
-        if ($('ytPlayerBox').classList.contains('drive-mode')) return;
+        if (!currentPlayingVideo || $('ytPlayerBox').classList.contains('drive-mode')) return;
         const vidEl = $('lessonVideoEl');
         if (currentPlayingVideo && currentPlayingVideo.videoUrl && vidEl.style.display !== 'none') {
             if (vidEl.paused) { vidEl.play(); playing = true; }
@@ -1965,6 +1860,7 @@
     }
 
     function seekEngineTo(t) {
+        if (!SC.length) return;
         t = clamp(t, 0, total - .01);
         base = t;
         clockStart = performance.now();
@@ -1972,16 +1868,41 @@
     }
 
     function scrubVideoTimeline(val) {
-        seekEngineTo((parseFloat(val) / 100) * total);
+        const vidEl = $('lessonVideoEl');
+        if (currentPlayingVideo && vidEl && vidEl.style.display !== 'none' && Number.isFinite(vidEl.duration)) {
+            vidEl.currentTime = (parseFloat(val) / 100) * vidEl.duration;
+        }
         showControlsTemporarily();
     }
 
+    function syncRealVideoControls() {
+        const vidEl = $('lessonVideoEl');
+        if (!vidEl || vidEl.style.display === 'none') return;
+        if (Number.isFinite(vidEl.duration) && vidEl.duration > 0) {
+            $('tTotal').textContent = fmtT(vidEl.duration);
+            $('ytTimelineSlider').value = (vidEl.currentTime / vidEl.duration) * 100;
+            $('tNow').textContent = fmtT(vidEl.currentTime);
+        }
+        playing = !vidEl.paused && !vidEl.ended;
+        updatePlayIconsUI();
+    }
+
+    function bindRealVideoControls() {
+        const vidEl = $('lessonVideoEl');
+        if (!vidEl || vidEl.dataset.controlsBound) return;
+        vidEl.dataset.controlsBound = 'true';
+        ['loadedmetadata','durationchange','timeupdate','play','pause','ended'].forEach(eventName =>
+            vidEl.addEventListener(eventName, syncRealVideoControls));
+    }
+
     function cycleVideoSpeed() {
+        if (!currentPlayingVideo) return;
         const speeds = [1, 1.25, 1.5, 2];
         base = nowTime();
         clockStart = performance.now();
         playbackSpeed = speeds[(speeds.indexOf(playbackSpeed) + 1) % speeds.length];
         $('speedBtnTxt').innerText = playbackSpeed + 'x';
+        const vidEl = $('lessonVideoEl'); if (vidEl && vidEl.style.display !== 'none') vidEl.playbackRate = playbackSpeed;
         showToast(`سرعة العرض: ${playbackSpeed}x ⚡`);
     }
 
@@ -1995,68 +1916,15 @@
         `).join('');
     }
 
-    // ==================== قاعدة بيانات المواد والأبحاث ====================
-    const subjectsCatalog = {
-        sci: [
-            { id: 'sci_math', name: 'الرياضيات', icon: 'fa-square-root-variable', accent: '#3b82f6', soft: 'rgba(59,130,246,0.14)', grad: 'linear-gradient(135deg,#60a5fa,#2563eb)', topics: ['البحث 1: النهايات والاستمرار', 'البحث 2: الاشتقاق وتطبيقاته', 'البحث 3: المتتاليات العددية', 'البحث 4: التابع اللوغاريتمي والأسي', 'البحث 5: الأعداد العقدية', 'البحث 6: التحليل التوافقي والاحتمالات'] },
-            { id: 'sci_phys', name: 'الفيزياء', icon: 'fa-atom', accent: '#8b5cf6', soft: 'rgba(139,92,246,0.14)', grad: 'linear-gradient(135deg,#a78bfa,#7c3aed)', topics: ['البحث 1: النواس المرن', 'البحث 2: النواس الفتلي والثقلي', 'البحث 3: ميكانيك السوائل', 'البحث 4: المغناطيسية والتحريض', 'البحث 5: التيار المتناوب الجيبي', 'البحث 6: الأمواج والإلكترونيات'] },
-            { id: 'sci_chem', name: 'الكيمياء', icon: 'fa-flask', accent: '#06b6d4', soft: 'rgba(6,182,212,0.14)', grad: 'linear-gradient(135deg,#22d3ee,#0891b2)', topics: ['البحث 1: الكيمياء النووية', 'البحث 2: الغازات والكيمياء الحرارية', 'البحث 3: سرعة التفاعل والتوازن', 'البحث 4: الحموض والأسس والأملاح', 'البحث 5: الكيمياء العضوية'] },
-            { id: 'sci_bio', name: 'علم الأحياء', icon: 'fa-dna', accent: '#10b981', soft: 'rgba(16,185,129,0.14)', grad: 'linear-gradient(135deg,#34d399,#059669)', topics: ['البحث 1: التنسيق العصبي', 'البحث 2: المستقبلات الحسية', 'البحث 3: التنسيق الهرموني', 'البحث 4: التكاثر عند الأحياء', 'البحث 5: الوراثة المندلية والبشرية'] },
-            { id: 'sci_arab', name: 'اللغة العربية', icon: 'fa-feather-pointed', accent: '#f97316', soft: 'rgba(249,115,22,0.14)', grad: 'linear-gradient(135deg,#fb923c,#ea580c)', topics: ['البحث 1: الأدب والقضايا الوطنية', 'البحث 2: الأدب الوجداني والاجتماعي', 'البحث 3: القواعد والنحو والإعراب', 'البحث 4: البلاغة والمحسنات'] },
-            { id: 'sci_eng', name: 'اللغة الإنكليزية', icon: 'fa-language', accent: '#f43f5e', soft: 'rgba(244,63,94,0.14)', grad: 'linear-gradient(135deg,#fb7185,#e11d48)', topics: ['البحث 1: الأزمنة Tenses', 'البحث 2: المبني للمجهول Passive', 'البحث 3: الكلام المنقول Reported', 'البحث 4: النصوص والمواضيع'] },
-            { id: 'sci_fr', name: 'اللغة الفرنسية', icon: 'fa-spell-check', accent: '#6366f1', soft: 'rgba(99,102,241,0.14)', grad: 'linear-gradient(135deg,#818cf8,#4f46e5)', topics: ['البحث 1: القواعد والأزمنة', 'البحث 2: الضمائر والربط', 'البحث 3: شرح النصوص والمواضيع'] },
-            { id: 'sci_nat', name: 'التربية الوطنية', icon: 'fa-flag', accent: '#10b981', soft: 'rgba(16,185,129,0.14)', grad: 'linear-gradient(135deg,#2dd4bf,#0d9488)', topics: ['البحث 1: المواطنة والدستور', 'البحث 2: التنمية والعلاقات الدولية'] },
-            { id: 'sci_rel', name: 'التربية الدينية', icon: 'fa-mosque', accent: '#f59e0b', soft: 'rgba(245,158,11,0.14)', grad: 'linear-gradient(135deg,#fbbf24,#d97706)', topics: ['البحث 1: القرآن الكريم والتجويد', 'البحث 2: الحديث الشريف والعقيدة', 'البحث 3: الفقه والأحكام'] }
-        ],
-        lit: [
-            { id: 'lit_arab', name: 'اللغة العربية', icon: 'fa-feather-pointed', accent: '#10b981', soft: 'rgba(16,185,129,0.14)', grad: 'linear-gradient(135deg,#34d399,#059669)', topics: ['البحث 1: الشعر القومي والوطني', 'البحث 2: المذهب الواقعي والابتداعي', 'البحث 3: القواعد والنحو الشامل', 'البحث 4: العروض والبلاغة'] },
-            { id: 'lit_phil', name: 'الفلسفة', icon: 'fa-brain', accent: '#8b5cf6', soft: 'rgba(139,92,246,0.14)', grad: 'linear-gradient(135deg,#a78bfa,#7c3aed)', topics: ['البحث 1: نظرية المعرفة', 'البحث 2: الأخلاق والقيم', 'البحث 3: الفلسفة الحديثة والمعاصرة', 'البحث 4: المنطق وكتابة المقالة'] },
-            { id: 'lit_hist', name: 'التاريخ', icon: 'fa-scroll', accent: '#f97316', soft: 'rgba(249,115,22,0.14)', grad: 'linear-gradient(135deg,#fb923c,#ea580c)', topics: ['البحث 1: تاريخ سوريا الحديث', 'البحث 2: حركات التحرر العربية', 'البحث 3: القضية الفلسطينية'] },
-            { id: 'lit_geo', name: 'الجغرافيا', icon: 'fa-earth-asia', accent: '#3b82f6', soft: 'rgba(59,130,246,0.14)', grad: 'linear-gradient(135deg,#60a5fa,#2563eb)', topics: ['البحث 1: الجغرافيا الطبيعية والمناخ', 'البحث 2: الجغرافيا البشرية والسكان', 'البحث 3: الموارد الاقتصادية'] },
-            { id: 'lit_eng', name: 'اللغة الإنكليزية', icon: 'fa-language', accent: '#f43f5e', soft: 'rgba(244,63,94,0.14)', grad: 'linear-gradient(135deg,#fb7185,#e11d48)', topics: ['البحث 1: القواعد الشاملة', 'البحث 2: نصوص الكتاب والمفردات'] },
-            { id: 'lit_fr', name: 'اللغة الفرنسية', icon: 'fa-spell-check', accent: '#6366f1', soft: 'rgba(99,102,241,0.14)', grad: 'linear-gradient(135deg,#818cf8,#4f46e5)', topics: ['البحث 1: قواعد اللغة الفرنسية', 'البحث 2: النصوص والتعبير الكتابي'] },
-            { id: 'lit_nat', name: 'التربية الوطنية', icon: 'fa-flag', accent: '#06b6d4', soft: 'rgba(6,182,212,0.14)', grad: 'linear-gradient(135deg,#2dd4bf,#0d9488)', topics: ['البحث 1: المؤسسات الدستورية', 'البحث 2: قضايا المجتمع المعاصر'] },
-            { id: 'lit_rel', name: 'التربية الدينية', icon: 'fa-mosque', accent: '#f59e0b', soft: 'rgba(245,158,11,0.14)', grad: 'linear-gradient(135deg,#fbbf24,#d97706)', topics: ['البحث 1: التلاوة والتفسير', 'البحث 2: الأحكام والأخلاق الإسلامية'] }
-        ],
-        ninth: [
-            { id: 'n9_math', name: 'الرياضيات', icon: 'fa-compass-drafting', accent: '#3b82f6', soft: 'rgba(59,130,246,0.14)', grad: 'linear-gradient(135deg,#60a5fa,#2563eb)', topics: ['البحث 1: الأعداد والكسور والجذور', 'البحث 2: المعادلات والمتراجحات', 'البحث 3: التوابع والإحصاء', 'البحث 4: مبرهنة تالس والمثلثات', 'البحث 5: الدائرة والرباعي الدائري'] },
-            { id: 'n9_sci', name: 'العلوم العامة', icon: 'fa-microscope', accent: '#10b981', soft: 'rgba(16,185,129,0.14)', grad: 'linear-gradient(135deg,#34d399,#059669)', topics: ['البحث 1: الجهاز الدعامي والحركي', 'البحث 2: الجهاز العصبي والحواس', 'البحث 3: الهضم والدوران والتنفس', 'البحث 4: التكاثر والوراثة والبيئة'] },
-            { id: 'n9_phys', name: 'الفيزياء والكيمياء', icon: 'fa-bolt', accent: '#06b6d4', soft: 'rgba(6,182,212,0.14)', grad: 'linear-gradient(135deg,#22d3ee,#0891b2)', topics: ['البحث 1: الحقل المغناطيسي والكهرباء', 'البحث 2: عزم القوة والتوازن الميكانيكي', 'البحث 3: المحاليل المائية والحموض', 'البحث 4: التفاعلات والكيمياء العضوية'] },
-            { id: 'n9_arab', name: 'اللغة العربية', icon: 'fa-book-open', accent: '#8b5cf6', soft: 'rgba(139,92,246,0.14)', grad: 'linear-gradient(135deg,#a78bfa,#7c3aed)', topics: ['البحث 1: شرح وإعراب القصائد', 'البحث 2: المشتقات والتوابع والمنصوبات', 'البحث 3: الإملاء والهمزات والمعاجم'] },
-            { id: 'n9_soc', name: 'الاجتماعيات', icon: 'fa-globe', accent: '#f97316', soft: 'rgba(249,115,22,0.14)', grad: 'linear-gradient(135deg,#fb923c,#ea580c)', topics: ['البحث 1: جغرافية سوريا والوطن العربي', 'البحث 2: التاريخ الحديث والمعاصر', 'البحث 3: التربية الوطنية'] },
-            { id: 'n9_eng', name: 'اللغة الإنكليزية', icon: 'fa-language', accent: '#f43f5e', soft: 'rgba(244,63,94,0.14)', grad: 'linear-gradient(135deg,#fb7185,#e11d48)', topics: ['البحث 1: القواعد والأزمنة الأساسية', 'البحث 2: النصوص وتشكيل السؤال'] },
-            { id: 'n9_fr', name: 'اللغة الفرنسية', icon: 'fa-spell-check', accent: '#6366f1', soft: 'rgba(99,102,241,0.14)', grad: 'linear-gradient(135deg,#818cf8,#4f46e5)', topics: ['البحث 1: قواعد الصف التاسع', 'البحث 2: النصوص والمفردات'] },
-            { id: 'n9_rel', name: 'التربية الدينية', icon: 'fa-mosque', accent: '#f59e0b', soft: 'rgba(245,158,11,0.14)', grad: 'linear-gradient(135deg,#fbbf24,#d97706)', topics: ['البحث 1: التجويد وسور القرآن', 'البحث 2: العقيدة والعبادات'] }
-        ]
-    };
-
+    // المواد والأبحاث المعروضة هنا تُنشأ فقط من صفوف lesson_videos.
+    const subjectsCatalog = { sci: [], lit: [], ninth: [] };
     let customLessonsStore = {};  // subjectId -> فيديوهات مرفوعة (جدول lesson_videos)
     let statsCache = {};          // videoId -> {views, likes, liked, saved, commentCount}
 
     function getVideosForSubject(subObj) {
+        if (!subObj) return [];
         const st = id => statsCache[id] || { views: 0, likes: 0, liked: false, saved: false, commentCount: 0 };
-        const storedList = (customLessonsStore[subObj.id] || []).map(v => ({ ...v, ...st(v.id), comments: [] }));
-        const defaultList = subObj.topics.map((topicName, idx) => {
-            const vidId = `${subObj.id}_def_${idx}`;
-            const isLimitsLesson = (subObj.id === 'sci_math' && idx === 0);
-            return {
-                id: vidId,
-                subjectId: subObj.id,
-                subjectName: subObj.name,
-                topic: topicName,
-                title: isLimitsLesson
-                    ? 'درس النهايات — الشرح التفاعلي الكامل مع القوانين والأمثلة'
-                    : `الشرح الشامل وحل المسائل والتدريبات - ${topicName}`,
-                teacher: 'منصة فريق روح التعليمي',
-                duration: '02:35',
-                timeAgo: idx === 0 ? 'منذ يومين' : `منذ ${idx + 2} أيام`,
-                grad: isLimitsLesson ? 'linear-gradient(135deg, #122150, #2563eb)' : subObj.grad,
-                videoUrl: '',
-                ...st(vidId),
-                comments: []
-            };
-        });
-        return [...storedList, ...defaultList];
+        return (customLessonsStore[subObj.id] || []).filter(v => !!v.videoUrl).map(v => ({ ...v, ...st(v.id), comments: [] }));
     }
 
     // تشغيل فيديو درس داخل ExoPlayer. روابط Drive تُحوَّل إلى رابط مباشر. يعيد true إن نجح الاستدعاء.
@@ -2074,15 +1942,28 @@
     }
 
     async function loadCustomLessons() {
-        const { data } = await Rouh.sb.from('lesson_videos').select('*').order('created_at', { ascending: false });
+        const { data, error } = await Rouh.sb.from('lesson_videos').select('id,stage,subject_id,subject_name,topic,title,teacher,duration,created_at,grad,video_url,is_protected').order('created_at', { ascending: false });
         customLessonsStore = {};
+        Object.keys(subjectsCatalog).forEach(stage => { subjectsCatalog[stage] = []; });
+        if (error) { showToast('تعذر تحميل الدروس من قاعدة البيانات ⚠️'); return; }
         (data || []).forEach(r => {
-            (customLessonsStore[r.subject_id] = customLessonsStore[r.subject_id] || []).push({
-                id: r.id, subjectId: r.subject_id, subjectName: r.subject_name, topic: r.topic, title: r.title,
-                teacher: r.teacher, duration: r.duration, timeAgo: Rouh.timeAgo(r.created_at),
-                grad: r.grad || 'linear-gradient(135deg,#063811,#159934)', videoUrl: Rouh.safeUrl(r.video_url), isProtected: !!r.is_protected
-            });
+            const videoUrl = Rouh.safeUrl(r.video_url);
+            if (!subjectsCatalog[r.stage] || !r.subject_id || !r.subject_name || !videoUrl) return;
+            const subjectId = r.stage + '_' + r.subject_name;
+            const video = {
+                id: r.id, subjectId, subjectName: r.subject_name, topic: r.topic || 'عام', title: r.title,
+                teacher: r.teacher || 'فريق روح التعليمي', duration: r.duration || '', timeAgo: Rouh.timeAgo(r.created_at),
+                grad: r.grad || 'linear-gradient(135deg,#60a5fa,#2563eb)', videoUrl, isProtected: !!r.is_protected
+            };
+            (customLessonsStore[subjectId] = customLessonsStore[subjectId] || []).push(video);
+            let subject = subjectsCatalog[r.stage].find(x => x.id === subjectId);
+            if (!subject) {
+                subject = { id: subjectId, name: r.subject_name, stage: r.stage, icon: 'fa-book-open', accent: '#3b82f6', soft: 'rgba(59,130,246,0.14)', grad: video.grad, topics: [] };
+                subjectsCatalog[r.stage].push(subject);
+            }
+            if (video.topic && !subject.topics.includes(video.topic)) subject.topics.push(video.topic);
         });
+        Object.keys(subjectsCatalog).forEach(stage => subjectsCatalog[stage].sort((a,b) => a.name.localeCompare(b.name, 'ar')));
     }
 
     async function hydrateStats(videos) {
@@ -2110,7 +1991,7 @@
 
         // ==================== التنقل الفوري بين الصفحات ====================
     let activeStageKey = 'sci';
-    let activeSubjectObj = subjectsCatalog.sci[0];
+    let activeSubjectObj = null;
     let selectedTopicFilter = 'all';
     let currentPlayingVideo = null;
     let channelReturnPageId = 'page-stages';
@@ -2126,12 +2007,6 @@
         window.scrollTo(0, 0);
     }
 
-    function playLimitsDemoDirectly() {
-        activeStageKey = 'sci';
-        activeSubjectObj = subjectsCatalog.sci[0];
-        channelReturnPageId = 'page-stages';
-        openWatchPlayer('sci_math_def_0');
-    }
 
     function openBacPage() {
         switchLessonPage('page-bac');
@@ -2154,6 +2029,8 @@
     function renderOriginalSubjectCards(stageKey, gridId, returnPageId) {
         const list = subjectsCatalog[stageKey] || [];
         const grid = $(gridId);
+        if (!grid) return;
+        if (!list.length) { grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--text-secondary);padding:20px;">لا توجد فيديوهات مضافة لهذه المرحلة بعد.</p>'; return; }
         grid.innerHTML = list.map((sub, idx) => `
             <div class="glow-book-card" style="--card-accent:${sub.accent}; --card-soft:${sub.soft};" onclick="openSubjectChannel('${stageKey}', ${idx}, '${returnPageId}')">
                 <div>
@@ -2174,7 +2051,8 @@
 
     async function openSubjectChannel(stageKey, subIdx, returnPage) {
         activeStageKey = stageKey;
-        activeSubjectObj = subjectsCatalog[stageKey][subIdx];
+        activeSubjectObj = (subjectsCatalog[stageKey] || [])[subIdx];
+        if (!activeSubjectObj) return;
         channelReturnPageId = returnPage;
         selectedTopicFilter = 'all';
 
@@ -2255,9 +2133,9 @@
 
     // ==================== تشغيل الفيديو ====================
     async function openWatchPlayer(videoId) {
-        if (!activeSubjectObj) activeSubjectObj = subjectsCatalog.sci[0];
         const allVids = getVideosForSubject(activeSubjectObj);
-        const target = allVids.find(v => v.id === videoId) || allVids[0];
+        const target = allVids.find(v => v.id === videoId);
+        if (!target || !target.videoUrl) { showToast('لا يوجد رابط فيديو صالح لهذا الدرس'); return; }
 
         currentPlayingVideo = target;
         currentPlayingVideo.views += 1;
@@ -2265,11 +2143,6 @@
         Rouh.sb.rpc('increment_video_views', { p_video: target.id });
         currentPlayingVideo.comments = await fetchVideoComments(target.id);
         currentPlayingVideo.commentCount = currentPlayingVideo.comments.length;
-
-        SC[0].items[0].text = target.id === 'sci_math_def_0' ? 'درس النهايات' : target.topic;
-        SC[0].items[2].text = `${target.subjectName} — فريق روح التعليمي`;
-        layoutScenes();
-        renderSceneJumpChips();
 
         playbackSpeed = 1;
         $('speedBtnTxt').innerText = '1x';
@@ -2300,17 +2173,17 @@
             $('ytPlayerBox').classList.remove('drive-mode'); frame.style.display = 'none'; frame.src = 'about:blank';
             cv.style.display = 'none';
             vidEl.style.display = 'block';
+            bindRealVideoControls();
             vidEl.src = currentPlayingVideo.videoUrl;
+            vidEl.playbackRate = playbackSpeed;
             vidEl.play().catch(() => {});
             playing = true;
             updatePlayIconsUI();
         } else {
             $('ytPlayerBox').classList.remove('drive-mode'); frame.style.display = 'none'; frame.src = 'about:blank';
-            vidEl.pause();
-            vidEl.style.display = 'none';
-            cv.style.display = 'block';
-            seekEngineTo(0);
-            playEngine();
+            vidEl.pause(); vidEl.style.display = 'none'; cv.style.display = 'none';
+            showToast('تعذر تشغيل رابط الفيديو');
+            return;
         }
 
         renderWatchPageDetails();
@@ -2368,8 +2241,6 @@
         const vidEl = $('lessonVideoEl');
         if (currentPlayingVideo && currentPlayingVideo.videoUrl && vidEl.style.display !== 'none') {
             vidEl.currentTime = Math.max(0, Math.min(vidEl.duration || 600, vidEl.currentTime + delta));
-        } else {
-            seekEngineTo(nowTime() + delta);
         }
 
         const ripple = $(side === 'right' ? 'rippleRight' : 'rippleLeft');
@@ -2533,17 +2404,15 @@
         showToast('تم نشر تعليقك 💬');
     }
 
-    let uploadedVideoFile = null;
-
-    function openUploadVideoModal() {
-        uploadedVideoFile = null;
-        if (!Rouh.isContentManager()) { showToast('رفع الدروس متاح للمعلمين والمشرفين فقط'); return; }
-        const targetSub = activeSubjectObj || subjectsCatalog.sci[0];
+    async function openUploadVideoModal() {
+        const targetSub = activeSubjectObj;
+        if (!targetSub) { showToast('اختر مادة موجودة قبل إضافة فيديو'); return; }
+        if (!Rouh.canManageContent(activeStageKey, 'lessons')) { showToast('لا تملك صلاحية رفع فيديوهات لهذه المرحلة ⚠️'); return; }
         const topicOpts = targetSub.topics.map(t => `<option value="${Rouh.esc(t)}">${Rouh.esc(t)}</option>`).join('');
 
         showPopup(`
             <h4 style="font-size:0.94rem; font-weight:800; margin-bottom:10px;">
-                <i class="fa-brands fa-google-drive" style="color:var(--rouh-green);"></i> إضافة درس فيديو (${targetSub.name})
+                <i class="fa-brands fa-google-drive" style="color:var(--rouh-green);"></i> إضافة درس فيديو (${Rouh.esc(targetSub.name)})
             </h4>
             <div class="form-field">
                 <label>اختر البحث المخصص للدرس</label>
@@ -2554,38 +2423,36 @@
                 <input type="text" id="upTitleInp" placeholder="مثال: شرح قوانين البحث الأول وحل المسائل...">
             </div>
             <div class="form-field">
-                <label>رابط الفيديو على Google Drive</label>
-                <input type="url" id="upUrlInp" dir="ltr" placeholder="https://drive.google.com/file/d/.../view">
-                <p style="font-size:0.68rem; color:var(--text-secondary); margin-top:5px; line-height:1.6;">اجعل الملف «أي شخص لديه الرابط يمكنه العرض» قبل نسخ الرابط.</p>
+                <label>رابط الفيديو (لا يتم رفع ملف فيديو)</label>
+                <input type="url" id="upUrlInp" dir="ltr" placeholder="رابط HTTPS لفيديو أو صفحة مشاركة">
+                <p style="font-size:0.68rem; color:var(--text-secondary); margin-top:5px; line-height:1.6;">أدخل رابطاً صالحاً للفيديو أو صفحة مشاركته؛ لا يتم رفع الفيديو إلى الموقع.</p>
             </div>
             <label style="display:flex; align-items:center; gap:8px; font-size:0.78rem; font-weight:800; margin-bottom:10px; cursor:pointer;">
                 <input type="checkbox" id="upProtectChk" style="width:17px; height:17px; accent-color:var(--rouh-green);">
                 منع تصوير الشاشة أثناء التشغيل (داخل التطبيق)
             </label>
-            <button class="btn-main-action" onclick="saveUploadedVideo('${targetSub.id}', '${targetSub.name}', '${targetSub.grad}')">
+            <button class="btn-main-action" onclick="saveUploadedVideo()">
                 <i class="fa-solid fa-check"></i> نشر الدرس في البحث المحدد
             </button>
         `);
     }
 
-    function onSelectLocalVideo(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        uploadedVideoFile = file;
-        showToast('تم إرفاق ملف الفيديو بنجاح 🎬');
-    }
 
-    async function saveUploadedVideo(subId, subName, subGrad) {
+    async function saveUploadedVideo() {
+        const targetSub = activeSubjectObj;
+        if (!targetSub) { showToast('اختر مادة موجودة أولاً'); return; }
+        const { id: subId, name: subName, grad: subGrad } = targetSub;
         const topic = $('upTopicSel').value;
         const title = $('upTitleInp').value.trim();
         const raw = $('upUrlInp').value.trim();
+        if (!Rouh.canManageContent(activeStageKey, 'lessons')) { showToast('لا تملك صلاحية هذا القسم ⚠️'); return; }
         if (!title) { showToast('يرجى كتابة عنوان الدرس أولاً ⚠️'); return; }
-        const drive = Rouh.driveInfo(raw);
-        if (!drive || drive.isFolder) { showToast('أدخل رابط فيديو صحيح من Google Drive ⚠️'); return; }
+        let videoUrl = ''; try { const u = new URL(raw); if (u.protocol === 'https:' || u.protocol === 'http:') videoUrl = u.href; } catch (e) {}
+        if (!videoUrl) { showToast('أدخل رابط فيديو صالحاً يبدأ بـ HTTPS أو HTTP ⚠️'); return; }
         try {
             const { error } = await Rouh.sb.from('lesson_videos').insert({
-                subject_id: subId, subject_name: subName, topic: topic, title: title,
-                video_url: drive.link, grad: subGrad, created_by: currentUser.id,
+                stage: activeStageKey, subject_id: subId, subject_name: subName, topic: topic, title: title,
+                video_url: videoUrl, grad: subGrad, created_by: currentUser.id,
                 is_protected: !!($('upProtectChk') && $('upProtectChk').checked)
             });
             if (error) throw error;
@@ -2626,9 +2493,6 @@
         syncUserFromStorage();
         await loadCustomLessons();
         initDoubleTapTouchZones();
-        layoutScenes();
-        renderSceneJumpChips();
-        renderFrameAt(0);
     });
 </script>
 

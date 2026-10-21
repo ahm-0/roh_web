@@ -153,7 +153,23 @@
     Rouh.hasRole = function (r) { return Rouh.roles.indexOf(r) > -1; };
     Rouh.isAdmin = function () { return Rouh.hasRole('admin'); };
     Rouh.isStaff = function () { return Rouh.hasRole('admin') || Rouh.hasRole('supervisor'); };
-    Rouh.isContentManager = function () { return Rouh.isStaff() || Rouh.hasRole('teacher'); };
+    var contentPermissions = [];
+    Rouh.refreshContentPermissions = async function () {
+        contentPermissions = [];
+        if (!Rouh.me) return contentPermissions;
+        try {
+            var res = await sb.from('content_upload_permissions').select('stage,section').eq('user_id', Rouh.me.id);
+            if (!res.error) contentPermissions = res.data || [];
+        } catch (e) { /* عدم توفر الصلاحية لا يعطل الموقع */ }
+        return contentPermissions;
+    };
+    Rouh.canManageContent = function (stage, section) {
+        if (Rouh.isStaff()) return true;
+        return contentPermissions.some(function (p) {
+            return p.section === section && (!p.stage || p.stage === stage);
+        });
+    };
+    Rouh.isContentManager = function () { return Rouh.isStaff() || contentPermissions.length > 0; };
     Rouh.canPublishNews = function () { return Rouh.isStaff() || !!(Rouh.me && Rouh.me.can_publish_news); };
 
     // يحلل رابط Google Drive ويعيد معرّف الملف وروابط المعاينة (أو null إن لم يكن رابط Drive صالحاً)
@@ -268,6 +284,7 @@
             window.location.replace(PAGES.home);
             return null;
         }
+        await Rouh.refreshContentPermissions();
         // تحديث آخر ظهور (مرة كل 10 دقائق كحد أقصى)
         try {
             var last = Number(sessionStorage.getItem('rouh_seen_at') || 0);
