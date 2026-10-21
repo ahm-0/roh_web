@@ -1522,6 +1522,8 @@
 <div class="toast-alert" id="toastBox">تم بنجاح!</div>
 
 <script>
+    // محدد عناصر DOM المحلي الذي تستخدمه دوال التنقل والتحميل في هذه الصفحة.
+    const $ = id => document.getElementById(id);
     function triggerGoNav(key) { Rouh.go(key); }
 
     let currentUser = {
