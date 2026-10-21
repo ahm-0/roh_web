@@ -1,0 +1,1995 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <link rel="preconnect" href="https://pzqbyevyxirvfywqzstr.supabase.co" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>الملف الشخصي - فريق روح التعليمي</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+    <script src="rouh-core.js"></script>
+
+    <style>
+        /* ==================== المتغيرات اللونية المتوافقة مع الرئيسية ==================== */
+        :root {
+            --rouh-green: #159934;
+            --rouh-green-dark: #0b5e1e;
+            --rouh-green-deep: #063811;
+            --rouh-green-bright: #22c55e;
+            --rouh-soft: #e8faee;
+
+            --clr-blue: #3b82f6;
+            --clr-cyan: #22d3ee;
+            --clr-purple: #8b5cf6;
+            --clr-emerald: #10b981;
+            --clr-orange: #f97316;
+            --clr-rose: #f43f5e;
+            --clr-amber: #f59e0b;
+
+            --bg-outer: #e4ece7;
+            --bg-app: #f4f8f5;
+            --bg-card: #ffffff;
+            --bg-subtle: #e9f0ec;
+            --bg-glass: rgba(255, 255, 255, 0.96);
+            --text-primary: #0f1f14;
+            --text-secondary: #5a7061;
+            --border-light: #dfece3;
+            --card-shadow: 0 8px 22px rgba(11, 94, 30, 0.06);
+        }
+
+        /* الوضع الليلي المتوافق مع الواجهة الرئيسية */
+        body.dark-ui {
+            --bg-outer: #000000;
+            --bg-app: #060907;
+            --bg-card: #111814;
+            --bg-subtle: #1c2620;
+            --bg-glass: rgba(12, 18, 14, 0.96);
+            --rouh-soft: rgba(34, 197, 94, 0.15);
+            --text-primary: #f5faf6;
+            --text-secondary: #94a89a;
+            --border-light: #1e2d23;
+            --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Noto Sans Arabic", "Geeza Pro", Tahoma, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-outer);
+            color: var(--text-primary);
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .phone-frame {
+            width: 100%;
+            max-width: 480px;
+            min-height: 100vh;
+            background-color: var(--bg-app);
+            position: relative;
+            overflow-x: hidden;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.15);
+            padding-top: 66px;
+            padding-bottom: 92px;
+        }
+
+        @keyframes viewSlideIn {
+            from { opacity: 0; transform: translate3d(0, 10px, 0); }
+            to { opacity: 1; transform: translate3d(0, 0, 0); }
+        }
+
+        @keyframes floatBubble {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-3px); }
+        }
+
+        /* ==================== الشريط العلوي الثابت (متوافق مع الرئيسية) ==================== */
+        .glass-topbar {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            height: 66px;
+            background: linear-gradient(135deg, var(--rouh-green-deep) 0%, var(--rouh-green-dark) 55%, var(--rouh-green) 100%);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 14px;
+            z-index: 2000;
+            box-shadow: 0 4px 20px rgba(6, 56, 17, 0.28);
+        }
+
+        .top-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .top-brand img {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            border: 2px solid #4ade80;
+            background: #ffffff;
+            object-fit: cover;
+        }
+
+        .top-brand-text h2 {
+            font-size: 0.96rem;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+
+        .top-brand-text span {
+            font-size: 0.72rem;
+            color: #bbf7d0;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .top-tools {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tool-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 13px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            cursor: pointer;
+            position: relative;
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.25);
+            transition: transform 0.15s ease;
+        }
+
+        .tool-btn:active { transform: scale(0.92); }
+
+        /* ==================== الصفحات المنفصلة ==================== */
+        .app-view {
+            display: none;
+            animation: viewSlideIn 0.22s ease-out;
+        }
+
+        .app-view.active {
+            display: block;
+        }
+
+        /* ==================== تصميم الملف الشخصي ==================== */
+        .tt-sub-navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px 10px;
+            direction: rtl;
+        }
+
+        .tt-icon-action {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.25rem;
+            cursor: pointer;
+            padding: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.15s ease;
+        }
+
+        .tt-icon-action:active { transform: scale(0.9); }
+
+        .tt-visits-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-subtle);
+            border: 1px solid var(--border-light);
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 0.76rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        .mini-avatars-stack {
+            display: flex;
+            align-items: center;
+        }
+
+        .mini-avatars-stack span {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.6rem;
+            font-weight: 800;
+            color: #fff;
+            margin-left: -6px;
+            border: 1.5px solid var(--bg-app);
+        }
+
+        /* القسم الرئيسي المنقسم (المعلومات يميناً + الصورة وفقاعة الحالة يساراً) */
+        .tt-main-split {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 18px 10px;
+            gap: 14px;
+        }
+
+        .tt-right-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            text-align: right;
+        }
+
+        .tt-name-line {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 1.05rem;
+            font-weight: 900;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+            cursor: pointer;
+        }
+
+        .verified-badge-ico {
+            color: #22c55e;
+            font-size: 0.92rem;
+        }
+
+        .tt-username-line {
+            font-size: 0.84rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 14px;
+            direction: ltr;
+            cursor: pointer;
+        }
+
+        .tt-stats-row {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .tt-stat-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .tt-stat-num {
+            font-size: 1.02rem;
+            font-weight: 900;
+            color: var(--text-primary);
+            line-height: 1.2;
+        }
+
+        .tt-stat-label {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        /* الجانب الأيسر: الصورة الدائرية + فقاعة الحالة + زر الزائد */
+        .tt-left-avatar-box {
+            position: relative;
+            width: 102px;
+            height: 102px;
+            flex-shrink: 0;
+            margin-top: 10px;
+        }
+
+        .tt-thought-bubble {
+            position: absolute;
+            top: -26px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-subtle);
+            color: var(--text-primary);
+            border: 1px solid var(--border-light);
+            padding: 5px 11px;
+            border-radius: 16px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            white-space: nowrap;
+            z-index: 5;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            animation: floatBubble 3s ease-in-out infinite;
+        }
+
+        .tt-thought-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 35%;
+            width: 9px;
+            height: 9px;
+            background: var(--bg-subtle);
+            border-right: 1px solid var(--border-light);
+            border-bottom: 1px solid var(--border-light);
+            transform: rotate(45deg);
+        }
+
+        .tt-avatar-circle {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            padding: 3px;
+            background: linear-gradient(135deg, var(--rouh-green-bright), var(--clr-cyan));
+            position: relative;
+            cursor: pointer;
+        }
+
+        .tt-avatar-circle img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #fff;
+        }
+
+        .tt-cyan-plus {
+            position: absolute;
+            bottom: 2px;
+            left: 2px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #22d3ee;
+            color: #000000;
+            border: 2.5px solid var(--bg-app);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 900;
+            cursor: pointer;
+        }
+
+        /* قسم النبذة التعريفية والموقع + الميزات التعليمية الذكية */
+        .tt-bio-section {
+            padding: 6px 18px 14px;
+            text-align: right;
+        }
+
+        .tt-location-line {
+            font-size: 0.83rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tt-bio-lines {
+            font-size: 0.84rem;
+            color: var(--text-primary);
+            line-height: 1.6;
+            font-weight: 700;
+            white-space: pre-line;
+            margin-bottom: 14px;
+        }
+
+        /* الميزات الذكية للطالب */
+        .smart-student-widgets {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .student-widget-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: 16px;
+            padding: 10px 8px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.15s ease, border-color 0.15s ease;
+        }
+
+        .student-widget-card:active {
+            transform: scale(0.96);
+            border-color: var(--rouh-green);
+        }
+
+        .sw-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 11px;
+            margin: 0 auto 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            color: #ffffff;
+            background: var(--sw-grad);
+        }
+
+        .student-widget-card h6 {
+            font-size: 0.74rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .student-widget-card span {
+            font-size: 0.66rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            display: block;
+        }
+
+        /* ==================== شريط تبويبات الملف (مهامي | المحفوظات | قنواتنا) ==================== */
+        .tt-tabs-bar {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            border-top: 1px solid var(--border-light);
+            border-bottom: 1px solid var(--border-light);
+            background: var(--bg-app);
+            position: sticky;
+            top: 66px;
+            z-index: 900;
+        }
+
+        .tt-tab-item {
+            height: 48px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            font-weight: 800;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: color 0.2s;
+        }
+
+        .tt-tab-item i { font-size: 1.05rem; }
+        .tt-tab-item.active { color: var(--text-primary); }
+
+        .tt-tab-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            width: 58px;
+            height: 2.5px;
+            background: var(--rouh-green-bright);
+            border-radius: 3px 3px 0 0;
+        }
+
+        .tt-tab-content {
+            display: none;
+            padding: 16px;
+            animation: viewSlideIn 0.2s ease-out;
+        }
+
+        .tt-tab-content.active { display: block; }
+
+        /* شريط نسبة إنجاز المهام الدراسية */
+        .progress-summary-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: 16px;
+            padding: 12px 14px;
+            margin-bottom: 12px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .prog-top-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.76rem;
+            font-weight: 800;
+            margin-bottom: 7px;
+        }
+
+        .prog-track {
+            width: 100%;
+            height: 8px;
+            background: var(--bg-subtle);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .prog-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--rouh-green-bright), var(--rouh-green));
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        /* بطاقات التبويبات الداخلية */
+        .clean-item-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: 16px;
+            padding: 13px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            box-shadow: var(--card-shadow);
+            text-decoration: none;
+            color: var(--text-primary);
+            transition: transform 0.15s ease;
+        }
+
+        .clean-item-card:active { transform: scale(0.98); }
+
+        .clean-item-right {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            flex: 1;
+        }
+
+        .clean-item-ico {
+            width: 42px;
+            height: 42px;
+            border-radius: 13px;
+            background: var(--rouh-soft);
+            color: var(--rouh-green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            flex-shrink: 0;
+        }
+
+        .clean-item-txt h5 {
+            font-size: 0.82rem;
+            font-weight: 800;
+            margin-bottom: 2px;
+            color: var(--text-primary);
+            line-height: 1.35;
+        }
+
+        .clean-item-txt p {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        .task-check-btn {
+            width: 26px;
+            height: 26px;
+            border-radius: 8px;
+            border: 2px solid var(--rouh-green);
+            background: transparent;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .task-check-btn.done { background: var(--rouh-green); }
+
+        /* ==================== واجهة الإعدادات المنفصلة الكاملة (#view-settings) ==================== */
+        .settings-page-wrap {
+            padding: 14px 16px 24px;
+        }
+
+        .settings-top-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            padding: 12px 14px;
+            border-radius: 18px;
+            margin-bottom: 16px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .settings-top-header h4 {
+            font-size: 0.94rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-back-profile {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 13px;
+            border-radius: 12px;
+            border: 1px solid var(--border-light);
+            background: var(--bg-subtle);
+            color: var(--text-primary);
+            font-size: 0.75rem;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .settings-group-title {
+            font-size: 0.78rem;
+            font-weight: 800;
+            color: var(--text-secondary);
+            margin: 14px 4px 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .settings-card-list {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 16px;
+        }
+
+        .setting-row-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-bottom: 1px solid var(--border-light);
+            background: transparent;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            text-align: right;
+            transition: background 0.15s;
+        }
+
+        .setting-row-btn:last-child { border-bottom: none; }
+        .setting-row-btn:active { background: var(--bg-subtle); }
+
+        .st-row-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .st-row-ico {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: #ffffff;
+            background: var(--ico-bg);
+            flex-shrink: 0;
+        }
+
+        .st-row-text h5 {
+            font-size: 0.84rem;
+            font-weight: 800;
+            margin-bottom: 2px;
+        }
+
+        .st-row-text p {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        /* بوابة المشرفين القابلة للربط بـ go:supervisor */
+        .supervisor-portal-box {
+            background: linear-gradient(135deg, #063811, #0b5e1e, #15803d);
+            border-radius: 20px;
+            padding: 16px;
+            color: #ffffff;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            cursor: pointer;
+            box-shadow: 0 8px 22px rgba(11, 94, 30, 0.25);
+            transition: transform 0.15s ease;
+        }
+
+        .supervisor-portal-box:active { transform: scale(0.98); }
+
+        .sup-info h5 {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: #fde68a;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 4px;
+        }
+
+        .sup-info p {
+            font-size: 0.73rem;
+            color: #dcfce7;
+            line-height: 1.4;
+        }
+
+        .sup-enter-btn {
+            padding: 8px 14px;
+            border-radius: 12px;
+            border: none;
+            background: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .btn-logout-final {
+            width: 100%;
+            padding: 14px;
+            border-radius: 18px;
+            border: 1.5px solid rgba(244, 63, 94, 0.35);
+            background: rgba(244, 63, 94, 0.1);
+            color: #f43f5e;
+            font-size: 0.88rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 8px;
+            transition: transform 0.15s ease;
+        }
+
+        .btn-logout-final:active { transform: scale(0.98); }
+
+        /* ==================== الشريط السفلي الثابت ==================== */
+        .bottom-dock {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-top: 1px solid var(--border-light);
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            align-items: end;
+            padding: 6px 8px 10px;
+            z-index: 2000;
+            box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .dock-btn {
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            font-size: 0.68rem;
+            font-weight: 800;
+            cursor: pointer;
+            padding: 6px 4px;
+            border-radius: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .dock-icon-box {
+            width: 36px;
+            height: 32px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            transition: all 0.2s ease;
+        }
+
+        .dock-btn.active { color: var(--rouh-green); }
+
+        .dock-btn.active .dock-icon-box {
+            background: var(--rouh-soft);
+            color: var(--rouh-green);
+            transform: translateY(-2px);
+        }
+
+        .dock-btn.center-home-btn {
+            position: relative;
+            background: transparent !important;
+            padding-top: 0;
+        }
+
+        .center-home-orb {
+            width: 50px;
+            height: 50px;
+            border-radius: 18px;
+            background: var(--bg-card);
+            border: 2px solid var(--border-light);
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            margin-top: -20px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+            transition: all 0.25s ease;
+        }
+
+        /* ==================== النوافذ المنبثقة التفاعلية ==================== */
+        .modal-wrap {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.68);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            padding: 16px;
+        }
+
+        .modal-wrap.open { display: flex; }
+
+        .modal-box {
+            background: var(--bg-card);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 410px;
+            padding: 20px;
+            border: 2px solid var(--rouh-green);
+            position: relative;
+            animation: viewSlideIn 0.22s ease-out;
+            max-height: 88vh;
+            overflow-y: auto;
+        }
+
+        .modal-close-x {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            border: none;
+            background: var(--bg-app);
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        .form-field { margin-bottom: 11px; text-align: right; }
+        .form-field label {
+            display: block;
+            font-size: 0.76rem;
+            font-weight: 800;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+        }
+
+        .form-field input,
+        .form-field select,
+        .form-field textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1.5px solid var(--border-light);
+            background: var(--bg-app);
+            color: var(--text-primary);
+            font-size: 0.84rem;
+            outline: none;
+        }
+
+        .btn-save-modal {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--rouh-green-bright), var(--rouh-green-dark));
+            color: #ffffff;
+            font-size: 0.88rem;
+            font-weight: 800;
+            cursor: pointer;
+            margin-top: 6px;
+        }
+
+        .toast-alert {
+            position: fixed;
+            bottom: 105px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--rouh-green-deep);
+            color: #ffffff;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            z-index: 4000;
+            display: none;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+        }
+
+        .external-go-mount {
+            min-height: 55vh;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <script>try{if(localStorage.getItem("rouh_dark_mode")==="true")document.body.classList.add("dark-ui");}catch(e){}</script>
+
+<div class="phone-frame">
+
+    <!-- ==================== الشريط العلوي الثابت ==================== -->
+    <header class="glass-topbar">
+        <div class="top-brand" onclick="triggerGoNav('home', this)">
+            <img src="https://i.ibb.co/whHk6hcT/IMG-20261011-WA0031.jpg" alt="فريق روح التعليمي">
+            <div class="top-brand-text">
+                <h2>فريق روح التعليمي</h2>
+                <span id="topBarStageLabel"><i class="fa-solid fa-circle-check"></i> البكالوريا العلمي</span>
+            </div>
+        </div>
+        <div class="top-tools">
+            <button class="tool-btn" onclick="openStudyTimerModal()" title="مؤقت المذاكرة">
+                <i class="fa-solid fa-stopwatch"></i>
+            </button>
+            <button class="tool-btn" onclick="toggleDarkUI()" title="تبديل المظهر">
+                <i class="fa-solid fa-sun" id="themeToggleIcon"></i>
+            </button>
+            <button class="tool-btn" onclick="openAppView('settings')" title="الإعدادات">
+                <i class="fa-solid fa-gear"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- ==================== 1. واجهة الملف الشخصي ==================== -->
+    <main id="view-profile" class="app-view active">
+
+        <!-- شريط أيقونات الملف العلوي -->
+        <div class="tt-sub-navbar">
+            <button class="tt-icon-action" onclick="openEditProfileModal()" title="تعديل الملف">
+                <i class="fa-solid fa-pen"></i>
+            </button>
+            <button class="tt-icon-action" id="verifyHeaderBtn" onclick="openVerifyRequestModal()" title="طلب توثيق الحساب" style="color:#22c55e;">
+                <i class="fa-solid fa-certificate"></i>
+            </button>
+
+            <div class="tt-visits-pill" onclick="showToast('أنت ضمن قائمة الطلاب المتميزين في منصة روح 🌟')">
+                <span id="studentRankBadge">المستوى: طالب متألق ⭐</span>
+                <div class="mini-avatars-stack">
+                    <span style="background:#10b981;"><i class="fa-solid fa-bolt"></i></span>
+                    <span style="background:#3b82f6;"><i class="fa-solid fa-award"></i></span>
+                </div>
+            </div>
+
+            <button class="tt-icon-action" onclick="openAppView('settings')" title="الإعدادات">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+
+        <!-- القسم الرئيسي المنقسم (المعلومات يميناً + الصورة وفقاعة الحالة يساراً) -->
+        <div class="tt-main-split">
+
+            <div class="tt-right-info">
+                <div class="tt-name-line" onclick="openEditProfileModal()">
+                    <span id="dispUserName">طالب روح</span>
+                    <i class="fa-solid fa-circle-check verified-badge-ico" id="verifiedBadgeIco" style="display:none;" title="حساب موثق"></i>
+                </div>
+
+                <div class="tt-username-line" onclick="copyUserHandle()">
+                    <span id="dispUserHandle">@rouh_student</span>
+                </div>
+
+                <div class="tt-stats-row">
+                    <div class="tt-stat-box" onclick="incrementDailyStreak()">
+                        <span class="tt-stat-num" id="statStreakDays">7</span>
+                        <span class="tt-stat-label">أيام التزام 🔥</span>
+                    </div>
+                    <div class="tt-stat-box" onclick="openStudyTimerModal()">
+                        <span class="tt-stat-num" id="statStudyHours">18</span>
+                        <span class="tt-stat-label">جلسة مذاكرة</span>
+                    </div>
+                    <div class="tt-stat-box">
+                        <span class="tt-stat-num" id="statPointsCount">950</span>
+                        <span class="tt-stat-label">نقطة تفوق</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tt-left-avatar-box">
+                <div class="tt-thought-bubble" onclick="openThoughtNoteModal()">
+                    <span id="userThoughtText">تحدث عن ما جرى</span>
+                </div>
+
+                <div class="tt-avatar-circle" onclick="document.getElementById('avatarFileInp').click()">
+                    <img id="profileAvatarImg" src="https://i.ibb.co/whHk6hcT/IMG-20261011-WA0031.jpg" alt="صورة الملف الشخصي">
+                    <div class="tt-cyan-plus" title="تغيير الصورة">
+                        <i class="fa-solid fa-plus"></i>
+                    </div>
+                </div>
+                <input type="file" id="avatarFileInp" accept="image/*" style="display:none;" onchange="handleAvatarUpload(event)">
+            </div>
+
+        </div>
+
+        <!-- النبذة التعريفية والمحافظة والمرحلة الدراسية (تُحفظ تلقائياً من تسجيل الدخول) -->
+        <div class="tt-bio-section">
+            <div class="tt-location-line">
+                <span>📍</span>
+                <span id="dispUserLocation">سوريا / إدلب</span>
+                <span>•</span>
+                <span id="dispStageBadge" style="color:var(--rouh-green-bright); font-size:0.78rem;">البكالوريا العلمي</span>
+            </div>
+
+            <!-- الوصف التعريفي للطالب (يقرأ تلقائياً ما كتبه الطالب عند الدخول أو الوصف الافتراضي) -->
+            <div class="tt-bio-lines" id="dispUserBio">انا طالب اسعى لتحقيق النجاح من خلال منصة فريق روح التعليمي</div>
+
+            <!-- ميزات الطالب الذكية -->
+            <div class="smart-student-widgets">
+                <div class="student-widget-card" onclick="openTargetScoreModal()">
+                    <div class="sw-icon" style="--sw-grad:linear-gradient(135deg,#34d399,#059669);">
+                        <i class="fa-solid fa-bullseye"></i>
+                    </div>
+                    <h6 id="widgetTargetVal">2850 / 2900</h6>
+                    <span>هدفي الامتحاني</span>
+                </div>
+
+                <div class="student-widget-card" onclick="openStudyTimerModal()">
+                    <div class="sw-icon" style="--sw-grad:linear-gradient(135deg,#60a5fa,#2563eb);">
+                        <i class="fa-solid fa-stopwatch-20"></i>
+                    </div>
+                    <h6 id="widgetTimerDisplay">25:00 دقيقة</h6>
+                    <span>مؤقت التركيز</span>
+                </div>
+
+                <div class="student-widget-card" onclick="incrementDailyStreak()">
+                    <div class="sw-icon" style="--sw-grad:linear-gradient(135deg,#fb923c,#ea580c);">
+                        <i class="fa-solid fa-fire-flame-curved"></i>
+                    </div>
+                    <h6>تسجيل إنجاز</h6>
+                    <span>+10 نقاط تفوق</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- شريط التبويبات الثلاثي (مهامي | المحفوظات | قنواتنا) -->
+        <div class="tt-tabs-bar">
+            <button class="tt-tab-item active" onclick="switchProfileTab('private', this)">
+                <i class="fa-solid fa-lock"></i>
+                <span>مهامي</span>
+            </button>
+            <button class="tt-tab-item" onclick="switchProfileTab('saved', this)">
+                <i class="fa-regular fa-bookmark"></i>
+                <span>المحفوظات</span>
+            </button>
+            <button class="tt-tab-item" onclick="switchProfileTab('channels', this)">
+                <i class="fa-solid fa-tower-broadcast"></i>
+                <span>قنواتنا</span>
+            </button>
+        </div>
+
+        <!-- 1. محتوى تبويب مهامي الخاصة -->
+        <section id="tab-private" class="tt-tab-content active">
+            <div class="progress-summary-card">
+                <div class="prog-top-row">
+                    <span><i class="fa-solid fa-chart-line" style="color:var(--rouh-green);"></i> نسبة إنجاز خطتي الدراسية</span>
+                    <span id="tasksProgressPercent" style="color:var(--rouh-green-bright);">0%</span>
+                </div>
+                <div class="prog-track">
+                    <div class="prog-fill" id="tasksProgressBar"></div>
+                </div>
+            </div>
+
+            <div style="display:flex; gap:8px; margin-bottom:12px;">
+                <input type="text" id="privateNoteInp" placeholder="أضف مهمة أو ملاحظة دراسية جديدة..." style="flex:1; padding:10px 12px; border-radius:12px; border:1px solid var(--border-light); background:var(--bg-card); color:var(--text-primary); font-size:0.8rem; outline:none;" onkeydown="if(event.key==='Enter') addPrivateNote();">
+                <button onclick="addPrivateNote()" style="padding:0 16px; border-radius:12px; border:none; background:var(--rouh-green); color:#fff; font-weight:800; font-size:0.78rem; cursor:pointer;">إضافة</button>
+            </div>
+            <div id="privateNotesListBox"></div>
+        </section>
+
+        <!-- 2. محتوى تبويب المحفوظات -->
+        <section id="tab-saved" class="tt-tab-content">
+            <div id="savedItemsBox"></div>
+        </section>
+
+        <!-- 3. محتوى تبويب قنواتنا الرسمية (بالروابط الجديدة المعتمدة) -->
+        <section id="tab-channels" class="tt-tab-content">
+            <p style="font-size:0.78rem; color:var(--text-secondary); margin-bottom:12px;">
+                انضم إلى القنوات الرسمية المعتمدة لمنصة <b>فريق روح التعليمي</b> لمتابعة أحدث الملخصات والأخبار التربوية:
+            </p>
+
+            <!-- 1. قناة الواتساب الرسمية -->
+            <a href="https://whatsapp.com/channel/0029Vah4SN99hXFB0OXPet3a" target="_blank" rel="noopener noreferrer" class="clean-item-card">
+                <div class="clean-item-right">
+                    <div class="clean-item-ico" style="background:rgba(16,185,129,0.15); color:#10b981;">
+                        <i class="fa-brands fa-whatsapp"></i>
+                    </div>
+                    <div class="clean-item-txt">
+                        <h5>قناة فريق روح التعليمي || أخبار تربوية✅️</h5>
+                        <p>تابع قناتنا الرسمية على واتساب للأخبار العاجلة</p>
+                    </div>
+                </div>
+                <span style="font-size:0.72rem; font-weight:800; color:#10b981; background:rgba(16,185,129,0.12); padding:5px 10px; border-radius:10px; white-space:nowrap;">متابعة</span>
+            </a>
+
+            <!-- 2. قناة التيليغرام الرسمية -->
+            <a href="https://t.me/sp_e_t/1371" target="_blank" rel="noopener noreferrer" class="clean-item-card">
+                <div class="clean-item-right">
+                    <div class="clean-item-ico" style="background:rgba(59,130,246,0.15); color:#3b82f6;">
+                        <i class="fa-brands fa-telegram"></i>
+                    </div>
+                    <div class="clean-item-txt">
+                        <h5>قناة فريق روح التعليمي - تيليغرام</h5>
+                        <p>نوط PDF، ملخصات، وبنوك أتمتة شاملة</p>
+                    </div>
+                </div>
+                <span style="font-size:0.72rem; font-weight:800; color:#3b82f6; background:rgba(59,130,246,0.12); padding:5px 10px; border-radius:10px; white-space:nowrap;">انضمام</span>
+            </a>
+
+            <!-- 3. حساب الإنستغرام الرسمي -->
+            <a href="https://www.instagram.com/spirit_education_team?cplk=MWt0Y2FjazI0cGU1ZA==" target="_blank" rel="noopener noreferrer" class="clean-item-card">
+                <div class="clean-item-right">
+                    <div class="clean-item-ico" style="background:rgba(244,63,94,0.15); color:#f43f5e;">
+                        <i class="fa-brands fa-instagram"></i>
+                    </div>
+                    <div class="clean-item-txt">
+                        <h5>صفحة الإنستغرام الرسمية</h5>
+                        <p>@spirit_education_team • نصائح وملخصات مرئية</p>
+                    </div>
+                </div>
+                <span style="font-size:0.72rem; font-weight:800; color:#f43f5e; background:rgba(244,63,94,0.12); padding:5px 10px; border-radius:10px; white-space:nowrap;">متابعة</span>
+            </a>
+
+            <!-- 4. صفحة الفيسبوك الرسمية -->
+            <a href="https://www.facebook.com/share/1ddLPGzwwT/" target="_blank" rel="noopener noreferrer" class="clean-item-card">
+                <div class="clean-item-right">
+                    <div class="clean-item-ico" style="background:rgba(37,99,235,0.15); color:#2563eb;">
+                        <i class="fa-brands fa-facebook-f"></i>
+                    </div>
+                    <div class="clean-item-txt">
+                        <h5>صفحة الفيسبوك الرسمية</h5>
+                        <p>فريق روح التعليمي • منشورات وإعلانات الدورات</p>
+                    </div>
+                </div>
+                <span style="font-size:0.72rem; font-weight:800; color:#2563eb; background:rgba(37,99,235,0.12); padding:5px 10px; border-radius:10px; white-space:nowrap;">متابعة</span>
+            </a>
+        </section>
+
+    </main>
+
+    <!-- ==================== 2. واجهة الإعدادات المنفصلة الكاملة (#view-settings) ==================== -->
+    <section id="view-settings" class="app-view">
+        <div class="settings-page-wrap">
+
+            <div class="settings-top-header">
+                <h4><i class="fa-solid fa-sliders" style="color:var(--rouh-green);"></i> الإعدادات والتحكم</h4>
+                <button class="btn-back-profile" onclick="openAppView('profile')">
+                    <i class="fa-solid fa-arrow-right"></i> عودة للملف
+                </button>
+            </div>
+
+            <!-- 1. قسم بوابة المشرفين (قابل للربط بـ go:supervisor) -->
+            <div class="settings-group-title" data-role="staff">
+                <i class="fa-solid fa-user-shield" style="color:var(--rouh-green);"></i> الإدارة والإشراف
+            </div>
+            <div class="supervisor-portal-box" data-role="staff" onclick="triggerGoNav('supervisor', this)">
+                <div class="sup-info">
+                    <h5><i class="fa-solid fa-shield-halved"></i> بوابة المشرفين</h5>
+                    <p>الدخول المخصص لمشرفي وأساتذة فريق روح التعليمي لإدارة المحتوى والملفات</p>
+                </div>
+                <span class="sup-enter-btn">دخول البوابة <i class="fa-solid fa-arrow-left"></i></span>
+            </div>
+
+            <!-- 2. أزرار التحكم بالحساب والمظهر -->
+            <div class="settings-group-title">
+                <i class="fa-solid fa-gears" style="color:var(--clr-blue);"></i> أزرار التحكم بالحساب
+            </div>
+            <div class="settings-card-list">
+                <button class="setting-row-btn" onclick="openEditProfileModal()">
+                    <div class="st-row-right">
+                        <div class="st-row-ico" style="--ico-bg:linear-gradient(135deg,#34d399,#059669);"><i class="fa-solid fa-user-pen"></i></div>
+                        <div class="st-row-text">
+                            <h5>تعديل البيانات الشخصية</h5>
+                            <p>تغيير الاسم، المعرّف، المحافظة، والوصف التعريفي</p>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-left" style="color:var(--text-secondary); font-size:0.8rem;"></i>
+                </button>
+
+                <button class="setting-row-btn" onclick="openTargetScoreModal()">
+                    <div class="st-row-right">
+                        <div class="st-row-ico" style="--ico-bg:linear-gradient(135deg,#fb923c,#ea580c);"><i class="fa-solid fa-bullseye"></i></div>
+                        <div class="st-row-text">
+                            <h5>تحديد الهدف الامتحاني</h5>
+                            <p>ضبط المجموع الدراسي المستهدف في الامتحان النهائي</p>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-left" style="color:var(--text-secondary); font-size:0.8rem;"></i>
+                </button>
+
+                <button class="setting-row-btn" onclick="toggleDarkUI()">
+                    <div class="st-row-right">
+                        <div class="st-row-ico" style="--ico-bg:linear-gradient(135deg,#818cf8,#4f46e5);"><i class="fa-solid fa-circle-half-stroke"></i></div>
+                        <div class="st-row-text">
+                            <h5>تبديل المظهر (الوضع الليلي / النهاري)</h5>
+                            <p>تغيير ألوان الواجهة لتناسب راحة العين أثناء الدراسة</p>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-left" style="color:var(--text-secondary); font-size:0.8rem;"></i>
+                </button>
+            </div>
+
+            <!-- 3. التوثيق والإشعارات والمساعدة والدعم -->
+            <div class="settings-group-title">
+                <i class="fa-solid fa-circle-check" style="color:var(--clr-purple);"></i> الخدمات والمساعدة والدعم
+            </div>
+            <div class="settings-card-list">
+                <!-- ميزات التطبيق الأصلي (تظهر داخل التطبيق فقط) -->
+                <button class="setting-row-btn" data-native-only style="display:none;" onclick="openStorageManagerNow()">
+                    <div class="st-row-right">
+                        <div class="st-row-ico" style="--ico-bg:linear-gradient(135deg,#f59e0b,#d97706);"><i class="fa-solid fa-folder-open"></i></div>
+                        <div class="st-row-text">
+                            <h5>مدير الملفات والتخزين</h5>
+                            <p>إدارة الملفات والمحتوى المحفوظ على جهازك</p>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-left" style="color:var(--text-secondary); font-size:0.8rem;"></i>
+                </button>
+                <button class="setting-row-btn" data-native-only style="display:none;" onclick="toggleShotProtect()">
+                    <div class="st-row-right">
+                        <div class="st-row-ico" style="--ico-bg:linear-gradient(135deg,#159934,#063811);"><i class="fa-solid fa-user-shield"></i></div>
+                        <div class="st-row-text">
+                            <h5>منع لقطات الشاشة</h5>
+                            <p id="shotProtectState">—</p>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-left" style="color:var(--text-secondary); font-size:0.8rem;"></i>
+                </button>
+                <!-- زر طلب توثيق الحساب -->
+                <button class="setting-row-btn" onclick="openVerifyRequestModal()">
+                    <div class="st-row-right">
+                        <div class="st-row-ico" style="--ico-bg:linear-gradient(135deg,#38bdf8,#0284c7);"><i class="fa-solid fa-certificate"></i></div>
+                        <div class="st-row-text">
+                            <h5>طلب توثيق الحساب</h5>
+                            <p>تقديم طلب للحصول على شارة التوثيق الرسمية في المنصة</p>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-left" style="color:var(--text-secondary); font-size:0.8rem;"></i>
+                </button>
+
+                <!-- زر الإشعارات -->
+                <button class="setting-row-btn" onclick="openNotificationsModal()">
+                    <div class="st-row-right">
+                        <div class="st-row-ico" style="--ico-bg:linear-gradient(135deg,#fbbf24,#d97706);"><i class="fa-solid fa-bell"></i></div>
+                        <div class="st-row-text">
+                            <h5>الإشعارات والتنبيهات</h5>
+                            <p>إدارة إشعارات الدروس، الأخبار الوزارية، والاختبارات</p>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-left" style="color:var(--text-secondary); font-size:0.8rem;"></i>
+                </button>
+
+                <!-- زر المساعدة والدعم (قابل للربط بـ go:support) -->
+                <button class="setting-row-btn" onclick="triggerGoNav('support', this)">
+                    <div class="st-row-right">
+                        <div class="st-row-ico" style="--ico-bg:linear-gradient(135deg,#a78bfa,#7c3aed);"><i class="fa-solid fa-headset"></i></div>
+                        <div class="st-row-text">
+                            <h5>المساعدة وتواصل مع الدعم</h5>
+                            <p>الانتقال إلى قسم المساعدة والدعم الفني لفريق روح</p>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-left" style="color:var(--text-secondary); font-size:0.8rem;"></i>
+                </button>
+            </div>
+
+            <!-- 4. زر تسجيل الخروج -->
+            <button class="btn-logout-final" onclick="confirmLogout()">
+                <i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج من الحساب
+            </button>
+
+        </div>
+    </section>
+
+    <!-- ==================== الشريط السفلي الثابت ==================== -->
+    <nav class="bottom-dock">
+        <!-- 1. الملف الشخصي -->
+        <button class="dock-btn active" id="dock-profile" onclick="openAppView('profile')">
+            <div class="dock-icon-box"><i class="fa-solid fa-user"></i></div>
+            <span>الملف الشخصي</span>
+        </button>
+
+        <!-- 2. الأخبار -->
+        <button class="dock-btn" id="dock-news" onclick="triggerGoNav('news', this)">
+            <div class="dock-icon-box"><i class="fa-solid fa-newspaper"></i></div>
+            <span>الأخبار</span>
+        </button>
+
+        <!-- 3. الرئيسية (في المنتصف) -->
+        <button class="dock-btn center-home-btn" id="dock-home" onclick="triggerGoNav('home', this)">
+            <div class="center-home-orb">
+                <i class="fa-solid fa-house-chimney"></i>
+            </div>
+            <span>الرئيسية</span>
+        </button>
+
+        <!-- 4. الاختبارات -->
+        <button class="dock-btn" id="dock-quizzes" onclick="triggerGoNav('quizzes', this)">
+            <div class="dock-icon-box"><i class="fa-solid fa-clipboard-check"></i></div>
+            <span>الاختبارات</span>
+        </button>
+
+        <!-- 5. الشروحات -->
+        <button class="dock-btn" id="dock-chat" onclick="triggerGoNav('chat')">
+            <div class="dock-icon-box"><i class="fa-solid fa-comments"></i></div>
+            <span>الدردشة</span>
+        </button>
+    </nav>
+
+</div>
+
+<!-- النافذة المنبثقة التفاعلية -->
+<div class="modal-wrap" id="popupModal">
+    <div class="modal-box">
+        <button class="modal-close-x" onclick="closePopup()"><i class="fa-solid fa-xmark"></i></button>
+        <div id="popupBody"></div>
+    </div>
+</div>
+
+<!-- إشعار عائم صغير -->
+<div class="toast-alert" id="toastBox">تم الحفظ بنجاح!</div>
+
+<script>
+    // =========================================================================
+    // التنقل بين الصفحات
+    // =========================================================================
+    function triggerGoNav(key) { Rouh.go(key); }
+
+    // ==================== إدارة بيانات الملف الشخصي والمزامنة التلقائية مع تسجيل الدخول ====================
+    const DEFAULT_BIO_TEXT = 'انا طالب اسعى لتحقيق النجاح من خلال منصة فريق روح التعليمي';
+
+    const stageNamesMap = {
+        sci: 'البكالوريا العلمي',
+        lit: 'البكالوريا الأدبي',
+        ninth: 'الصف التاسع الأساسي'
+    };
+
+    let userProfile = {
+        name: 'طالب روح',
+        handle: 'rouh_student',
+        stage: 'sci',
+        city: 'إدلب',
+        location: 'سوريا / إدلب',
+        bio: DEFAULT_BIO_TEXT,
+        thought: 'تحدث عن ما جرى',
+        targetScore: '2850 / 2900',
+        streakDays: 7,
+        studySessions: 18,
+        points: 950,
+        avatar: 'https://i.ibb.co/whHk6hcT/IMG-20261011-WA0031.jpg'
+    };
+
+    let studyTasksList = []; // { id, text, done } من جدول study_tasks
+
+    // دالة قراءة معلومات تسجيل الدخول القادمة من الواجهة الرئيسية تلقائياً
+    async function loadProfileState() {
+        const me = await Rouh.init();
+        if (!me) return;
+        mapMeToProfile(me);
+        Rouh.applyTheme('themeToggleIcon');
+        renderProfileData();
+        updateShotProtectLabel();
+        await Promise.all([loadTasks(), loadSavedItems()]);
+    }
+
+    function mapMeToProfile(me) {
+        userProfile = {
+            ...userProfile,
+            name: me.full_name,
+            handle: me.handle || userProfile.handle,
+            stage: me.stage,
+            city: me.city,
+            location: 'سوريا / ' + me.city,
+            bio: me.bio || DEFAULT_BIO_TEXT,
+            thought: me.thought,
+            targetScore: me.target_score,
+            streakDays: me.streak_days,
+            studySessions: me.study_sessions,
+            points: me.points,
+            lastStreakDate: me.last_streak_date,
+            avatar: Rouh.avatarOf(me)
+        };
+    }
+
+    async function saveProfileState() {
+        const patch = {
+            full_name: userProfile.name,
+            handle: userProfile.handle,
+            stage: userProfile.stage,
+            city: userProfile.city,
+            bio: userProfile.bio,
+            thought: userProfile.thought,
+            target_score: userProfile.targetScore,
+            streak_days: userProfile.streakDays,
+            study_sessions: userProfile.studySessions,
+            points: userProfile.points,
+            last_streak_date: userProfile.lastStreakDate || null,
+            avatar_url: userProfile.avatar === Rouh.DEFAULT_AVATAR ? null : userProfile.avatar
+        };
+        const { error } = await Rouh.sb.from('profiles').update(patch).eq('id', Rouh.me.id);
+        if (error) {
+            showToast(error.code === '23505' ? 'هذا المعرّف مستخدم من طالب آخر، اختر غيره ⚠️' : 'تعذر حفظ التغييرات، حاول مجدداً ⚠️');
+            return false;
+        }
+        Object.assign(Rouh.me, patch);
+        Rouh.saveCache();
+        return true;
+    }
+
+    function renderProfileData() {
+        const stTitle = stageNamesMap[userProfile.stage] || 'البكالوريا العلمي';
+        document.getElementById('topBarStageLabel').innerHTML = `<i class="fa-solid fa-circle-check"></i> ${stTitle}`;
+        document.getElementById('dispStageBadge').innerText = stTitle;
+
+        document.getElementById('dispUserName').innerText = userProfile.name;
+        document.getElementById('dispUserHandle').innerText = '@' + userProfile.handle.replace(/^@/, '');
+        document.getElementById('dispUserLocation').innerText = userProfile.location || ('سوريا / ' + userProfile.city);
+        document.getElementById('dispUserBio').innerText = userProfile.bio || DEFAULT_BIO_TEXT;
+        document.getElementById('userThoughtText').innerText = userProfile.thought;
+        document.getElementById('profileAvatarImg').src = userProfile.avatar;
+
+        document.getElementById('statStreakDays').innerText = userProfile.streakDays;
+        document.getElementById('statStudyHours').innerText = userProfile.studySessions;
+        document.getElementById('statPointsCount').innerText = userProfile.points;
+        document.getElementById('widgetTargetVal').innerText = userProfile.targetScore;
+
+        const vb = document.getElementById('verifiedBadgeIco');
+        if (vb) vb.style.display = Rouh.me && Rouh.me.is_verified ? '' : 'none';
+        const vh = document.getElementById('verifyHeaderBtn');
+        if (vh) vh.style.display = Rouh.me && Rouh.me.is_verified ? 'none' : '';
+        const rk = document.getElementById('studentRankBadge');
+        if (rk) {
+            const p = userProfile.points;
+            rk.innerText = 'المستوى: ' + (p >= 1500 ? 'بطل التفوق 🏆' : p >= 600 ? 'طالب متألق ⭐' : p >= 150 ? 'طالب مجتهد 💪' : 'طالب مبتدئ 🌱');
+        }
+    }
+
+    function openAppView(viewName) {
+        document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
+        const target = document.getElementById('view-' + viewName);
+        if (target) target.classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function switchProfileTab(tabKey, btnEl) {
+        document.querySelectorAll('.tt-tab-item').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tt-tab-content').forEach(c => c.classList.remove('active'));
+
+        if (btnEl) btnEl.classList.add('active');
+        const target = document.getElementById('tab-' + tabKey);
+        if (target) target.classList.add('active');
+    }
+
+    // ==================== إدارة المهام الدراسية ====================
+    function renderPrivateTasks() {
+        const box = document.getElementById('privateNotesListBox');
+        const e = Rouh.esc;
+        const total = studyTasksList.length;
+        const doneCount = studyTasksList.filter(t => t.done).length;
+        const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
+
+        document.getElementById('tasksProgressPercent').innerText = pct + '%';
+        document.getElementById('tasksProgressBar').style.width = pct + '%';
+
+        if (!total) {
+            box.innerHTML = `<p style="text-align:center; font-size:0.78rem; color:var(--text-secondary); padding:16px;">لا توجد مهام دراسية بعد، أضف مهمتك الأولى بالأعلى.</p>`;
+            return;
+        }
+
+        box.innerHTML = studyTasksList.map(task => `
+            <div class="clean-item-card">
+                <div class="clean-item-right" onclick="toggleTaskDone('${e(task.id)}')" style="cursor:pointer;">
+                    <button class="task-check-btn ${task.done ? 'done' : ''}">
+                        ${task.done ? '<i class="fa-solid fa-check"></i>' : ''}
+                    </button>
+                    <div class="clean-item-txt">
+                        <h5 style="${task.done ? 'text-decoration:line-through; opacity:0.6;' : ''}">${e(task.text)}</h5>
+                        <p>${task.done ? 'مهمة منجزة ✅' : 'قيد الدراسة • اضغط للإنجاز'}</p>
+                    </div>
+                </div>
+                <button onclick="deletePrivateNote('${e(task.id)}')" style="border:none; background:rgba(244,63,94,0.14); color:#f43f5e; width:32px; height:32px; border-radius:9px; cursor:pointer;">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </div>
+        `).join('');
+    }
+
+    async function loadTasks() {
+        const { data, error } = await Rouh.sb.from('study_tasks')
+            .select('id,text,done').eq('user_id', Rouh.me.id).order('created_at', { ascending: false });
+        studyTasksList = error ? [] : data;
+        renderPrivateTasks();
+    }
+
+    async function loadSavedItems() {
+        const box = document.getElementById('savedItemsBox');
+        if (!box) return;
+        const e = Rouh.esc;
+        const [p, v] = await Promise.all([
+            Rouh.sb.from('post_saves').select('created_at, posts(id,title,category)').eq('user_id', Rouh.me.id).order('created_at', { ascending: false }),
+            Rouh.sb.from('video_saves').select('video_id').eq('user_id', Rouh.me.id)
+        ]);
+        const posts = (p.data || []).filter(r => r.posts);
+        const vids = v.data || [];
+        if (!posts.length && !vids.length) {
+            box.innerHTML = '<p style="text-align:center; font-size:0.78rem; color:var(--text-secondary); padding:16px;">لا توجد عناصر محفوظة بعد. احفظ المنشورات والدروس لتظهر هنا 🔖</p>';
+            return;
+        }
+        box.innerHTML = posts.map(r => `
+            <div class="clean-item-card" onclick="Rouh.go('news')" style="cursor:pointer;">
+                <div class="clean-item-right">
+                    <div class="clean-item-ico"><i class="fa-solid fa-bookmark"></i></div>
+                    <div class="clean-item-txt">
+                        <h5>${e(r.posts.title)}</h5>
+                        <p>${e(r.posts.category)} • منشور محفوظ</p>
+                    </div>
+                </div>
+                <i class="fa-solid fa-check-circle" style="color:var(--rouh-green);"></i>
+            </div>`).join('') + (vids.length ? `
+            <div class="clean-item-card" onclick="Rouh.go('lessons')" style="cursor:pointer;">
+                <div class="clean-item-right">
+                    <div class="clean-item-ico"><i class="fa-solid fa-circle-play"></i></div>
+                    <div class="clean-item-txt">
+                        <h5>دروس مصوّرة محفوظة (${vids.length})</h5>
+                        <p>اضغط لفتح قسم الشروحات ومتابعة دروسك المحفوظة</p>
+                    </div>
+                </div>
+                <i class="fa-solid fa-check-circle" style="color:var(--rouh-green);"></i>
+            </div>` : '');
+    }
+
+    async function toggleTaskDone(id) {
+        const task = studyTasksList.find(t => t.id === id);
+        if (!task) return;
+        const newDone = !task.done;
+        const { error } = await Rouh.sb.from('study_tasks').update({ done: newDone }).eq('id', id);
+        if (error) { showToast('تعذر تحديث المهمة ⚠️'); return; }
+        task.done = newDone;
+        if (newDone) {
+            userProfile.points += 5;
+            await saveProfileState();
+            renderProfileData();
+            showToast('أحسنت! +5 نقاط تفوق لإنجاز المهمة 🌟');
+        }
+        renderPrivateTasks();
+    }
+
+    async function addPrivateNote() {
+        const inp = document.getElementById('privateNoteInp');
+        const val = inp.value.trim();
+        if (!val) return;
+        const { data, error } = await Rouh.sb.from('study_tasks')
+            .insert({ user_id: Rouh.me.id, text: val.slice(0, 300) }).select('id,text,done').single();
+        if (error) { showToast('تعذر إضافة المهمة ⚠️'); return; }
+        studyTasksList.unshift(data);
+        inp.value = '';
+        renderPrivateTasks();
+        showToast('تمت إضافة المهمة إلى خطتك الدراسية ✅');
+    }
+
+    async function deletePrivateNote(id) {
+        const { error } = await Rouh.sb.from('study_tasks').delete().eq('id', id);
+        if (error) { showToast('تعذر حذف المهمة ⚠️'); return; }
+        studyTasksList = studyTasksList.filter(t => t.id !== id);
+        renderPrivateTasks();
+    }
+
+    // ==================== الميزات الذكية (الالتزام + الهدف + مؤقت التركيز) ====================
+    async function incrementDailyStreak() {
+        const today = new Date().toISOString().slice(0, 10);
+        if (userProfile.lastStreakDate === today) {
+            showToast('سجلت التزام اليوم بالفعل، عُد غداً 🔥');
+            return;
+        }
+        userProfile.streakDays += 1;
+        userProfile.points += 10;
+        userProfile.lastStreakDate = today;
+        await saveProfileState();
+        renderProfileData();
+        showToast('رائع! تم تسجيل يوم التزام جديد (+10 نقاط تفوق 🔥)');
+    }
+
+    function openTargetScoreModal() {
+        const max = userProfile.stage === 'ninth' ? 3100 : (userProfile.stage === 'sci' ? 2900 : 2800);
+        showPopup(`
+            <h4 style="font-size:0.95rem; font-weight:800; margin-bottom:8px;">
+                <i class="fa-solid fa-bullseye" style="color:var(--rouh-green);"></i> تحديد الهدف الامتحاني
+            </h4>
+            <p style="font-size:0.76rem; color:var(--text-secondary); margin-bottom:12px;">
+                اكتب المجموع الذي تطمح لتحقيقه من أصل (<b>${max}</b> درجة):
+            </p>
+            <div class="form-field">
+                <input type="number" id="targetScoreInpEl" placeholder="مثال: ${max - 40}" max="${max}">
+            </div>
+            <button class="btn-save-modal" onclick="saveTargetScore(${max})">حفظ هدفي الدراسي</button>
+        `);
+    }
+
+    async function saveTargetScore(max) {
+        const val = parseInt(document.getElementById('targetScoreInpEl').value, 10);
+        if (!val || val <= 0 || val > max) {
+            showToast('يرجى إدخال مجموع صحيح حتى ' + max);
+            return;
+        }
+        userProfile.targetScore = `${val} / ${max}`;
+        await saveProfileState();
+        renderProfileData();
+        closePopup();
+        showToast('تم تحديث هدفك الامتحاني بنجاح 🎯');
+    }
+
+    let studyTimerInterval = null;
+    let studySecondsLeft = 25 * 60;
+    let isTimerRunning = false;
+
+    function formatTimerMMSS(sec) {
+        const m = String(Math.floor(sec / 60)).padStart(2, '0');
+        const s = String(sec % 60).padStart(2, '0');
+        return `${m}:${s}`;
+    }
+
+    function openStudyTimerModal() {
+        showPopup(`
+            <div style="text-align:center;">
+                <div style="width:54px;height:54px;border-radius:16px;background:linear-gradient(135deg,#60a5fa,#2563eb);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin:0 auto 10px;">
+                    <i class="fa-solid fa-stopwatch-20"></i>
+                </div>
+                <h4 style="font-size:0.96rem; font-weight:800; margin-bottom:4px;">مؤقت التركيز والمذاكرة (Pomodoro)</h4>
+                <p style="font-size:0.75rem; color:var(--text-secondary); margin-bottom:14px;">
+                    ركز في دراستك لمدة 25 دقيقة متواصلة واحصل على +25 نقطة تفوق
+                </p>
+                <div id="modalTimerBigDigits" style="font-size:2.4rem; font-weight:900; color:var(--rouh-green-bright); margin-bottom:16px; font-variant-numeric:tabular-nums;">
+                    ${formatTimerMMSS(studySecondsLeft)}
+                </div>
+                <div style="display:flex; gap:8px;">
+                    <button class="btn-save-modal" style="flex:1;" onclick="toggleStudyTimer()">
+                        <i class="fa-solid ${isTimerRunning ? 'fa-pause' : 'fa-play'}"></i> ${isTimerRunning ? 'إيقاف مؤقت' : 'بدء جلسة التركيز'}
+                    </button>
+                    <button class="btn-save-modal" style="background:var(--bg-subtle); color:var(--text-primary); width:auto; padding:0 16px;" onclick="resetStudyTimer()">
+                        إعادة
+                    </button>
+                </div>
+            </div>
+        `);
+    }
+
+    function toggleStudyTimer() {
+        if (isTimerRunning) {
+            clearInterval(studyTimerInterval);
+            isTimerRunning = false;
+            openStudyTimerModal();
+            return;
+        }
+        isTimerRunning = true;
+        openStudyTimerModal();
+        studyTimerInterval = setInterval(() => {
+            if (studySecondsLeft > 0) {
+                studySecondsLeft--;
+                const str = formatTimerMMSS(studySecondsLeft);
+                const modalDigits = document.getElementById('modalTimerBigDigits');
+                if (modalDigits) modalDigits.innerText = str;
+                const widgetDigits = document.getElementById('widgetTimerDisplay');
+                if (widgetDigits) widgetDigits.innerText = str + ' دقيقة';
+            } else {
+                clearInterval(studyTimerInterval);
+                isTimerRunning = false;
+                studySecondsLeft = 25 * 60;
+                userProfile.studySessions += 1;
+                userProfile.points += 25;
+                saveProfileState();
+                renderProfileData();
+                closePopup();
+                showToast('مبارك إتمام جلسة المذاكرة! +25 نقطة تفوق 🏆');
+            }
+        }, 1000);
+    }
+
+    function resetStudyTimer() {
+        clearInterval(studyTimerInterval);
+        isTimerRunning = false;
+        studySecondsLeft = 25 * 60;
+        document.getElementById('widgetTimerDisplay').innerText = '25:00 دقيقة';
+        openStudyTimerModal();
+    }
+
+    // ==================== رفع صورة شخصية جديدة ====================
+    async function handleAvatarUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        try {
+            showToast('جارٍ رفع الصورة...');
+            const blob = await Rouh.compressImage(file, 512, 0.85);
+            const url = await Rouh.uploadFile('avatars', blob, '', 'jpg');
+            userProfile.avatar = url;
+            if (await saveProfileState()) {
+                renderProfileData();
+                showToast('تم تحديث صورتك الشخصية ✨');
+            }
+        } catch (err) {
+            showToast('تعذر رفع الصورة، تأكد أنها بصيغة صورة صالحة ⚠️');
+        }
+    }
+
+    // ==================== النوافذ التفاعلية ====================
+    function showPopup(html) {
+        document.getElementById('popupBody').innerHTML = html;
+        document.getElementById('popupModal').classList.add('open');
+    }
+
+    function closePopup() {
+        document.getElementById('popupModal').classList.remove('open');
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById('toastBox');
+        t.innerText = msg;
+        t.style.display = 'block';
+        setTimeout(() => { t.style.display = 'none'; }, 2200);
+    }
+
+    async function copyUserHandle() {
+        const text = '@' + userProfile.handle.replace(/^@/, '');
+        const ok = await Rouh.copy(text);
+        showToast(ok ? 'تم نسخ المعرّف: ' + text : 'تعذر نسخ المعرّف ⚠️');
+    }
+
+    function openStorageManagerNow() {
+        if (!Rouh.native.openStorageManager()) showToast('هذه الميزة متاحة داخل التطبيق فقط');
+    }
+
+    function updateShotProtectLabel() {
+        const el = document.getElementById('shotProtectState');
+        if (el) el.innerText = Rouh.native.userProtection() ? 'مفعّل — لا يمكن تصوير شاشة التطبيق' : 'معطّل — يمكن تصوير الشاشة';
+    }
+
+    function toggleShotProtect() {
+        const on = Rouh.native.toggleUserProtection();
+        updateShotProtectLabel();
+        showToast(on ? 'تم تفعيل منع لقطات الشاشة 🔒' : 'تم السماح بلقطات الشاشة 🔓');
+    }
+
+    function openThoughtNoteModal() {
+        showPopup(`
+            <h4 style="font-size:0.95rem; font-weight:800; margin-bottom:10px;">
+                <i class="fa-regular fa-comment-dots" style="color:var(--rouh-green);"></i> تحديث فقاعة الحالة
+            </h4>
+            <div class="form-field">
+                <label>اكتب حالتك الحالية (تظهر أعلى صورتك الشخصية):</label>
+                <input type="text" id="thoughtInpEl" maxlength="32" value="${Rouh.esc(userProfile.thought)}">
+            </div>
+            <button class="btn-save-modal" onclick="saveThoughtNow()">حفظ الحالة</button>
+        `);
+    }
+
+    async function saveThoughtNow() {
+        const val = document.getElementById('thoughtInpEl').value.trim();
+        if (val) {
+            userProfile.thought = val;
+            await saveProfileState();
+            renderProfileData();
+            closePopup();
+            showToast('تم تحديث فقاعة الحالة ✨');
+        }
+    }
+
+    function openEditProfileModal() {
+        showPopup(`
+            <h4 style="font-size:0.95rem; font-weight:800; margin-bottom:12px;">
+                <i class="fa-solid fa-user-pen" style="color:var(--rouh-green);"></i> تعديل الملف الشخصي
+            </h4>
+            <div class="form-field">
+                <label>اسم الطالب</label>
+                <input type="text" id="editNameInp" maxlength="60" value="${Rouh.esc(userProfile.name)}">
+            </div>
+            <div class="form-field">
+                <label>المعرّف (@username)</label>
+                <input type="text" id="editHandleInp" maxlength="24" value="${Rouh.esc(userProfile.handle)}" dir="ltr">
+            </div>
+            <div class="form-field">
+                <label>المرحلة الدراسية</label>
+                <select id="editStageSel">
+                    <option value="sci" ${userProfile.stage === 'sci' ? 'selected' : ''}>البكالوريا العلمي</option>
+                    <option value="lit" ${userProfile.stage === 'lit' ? 'selected' : ''}>البكالوريا الأدبي</option>
+                    <option value="ninth" ${userProfile.stage === 'ninth' ? 'selected' : ''}>الصف التاسع الأساسي</option>
+                </select>
+            </div>
+            <div class="form-field">
+                <label>المحافظة</label>
+                <select id="editCitySel">
+                    <option value="دمشق" ${userProfile.city === 'دمشق' ? 'selected' : ''}>دمشق</option>
+                    <option value="ريف دمشق" ${userProfile.city === 'ريف دمشق' ? 'selected' : ''}>ريف دمشق</option>
+                    <option value="حلب" ${userProfile.city === 'حلب' ? 'selected' : ''}>حلب</option>
+                    <option value="إدلب" ${userProfile.city === 'إدلب' ? 'selected' : ''}>إدلب</option>
+                    <option value="حمص" ${userProfile.city === 'حمص' ? 'selected' : ''}>حمص</option>
+                    <option value="حماة" ${userProfile.city === 'حماة' ? 'selected' : ''}>حماة</option>
+                    <option value="اللاذقية" ${userProfile.city === 'اللاذقية' ? 'selected' : ''}>اللاذقية</option>
+                    <option value="طرطوس" ${userProfile.city === 'طرطوس' ? 'selected' : ''}>طرطوس</option>
+                    <option value="درعا" ${userProfile.city === 'درعا' ? 'selected' : ''}>درعا</option>
+                    <option value="دير الزور" ${userProfile.city === 'دير الزور' ? 'selected' : ''}>دير الزور</option>
+                </select>
+            </div>
+            <div class="form-field">
+                <label>الوصف التعريفي (البايو)</label>
+                <textarea id="editBioInp" rows="3" maxlength="200">${Rouh.esc(userProfile.bio)}</textarea>
+            </div>
+            <button class="btn-save-modal" onclick="saveProfileEdits()">حفظ التعديلات</button>
+        `);
+    }
+
+    async function saveProfileEdits() {
+        const newHandle = document.getElementById('editHandleInp').value.trim().replace(/^@/, '').toLowerCase().replace(/[^a-z0-9_]/g, '');
+        userProfile.name = document.getElementById('editNameInp').value.trim() || userProfile.name;
+        if (newHandle.length >= 3) userProfile.handle = newHandle;
+        userProfile.stage = document.getElementById('editStageSel').value;
+        userProfile.city = document.getElementById('editCitySel').value;
+        userProfile.location = 'سوريا / ' + userProfile.city;
+        userProfile.bio = document.getElementById('editBioInp').value.trim() || DEFAULT_BIO_TEXT;
+
+        if (await saveProfileState()) {
+            renderProfileData();
+            closePopup();
+            showToast('تم حفظ تعديلات الملف الشخصي ✅');
+        }
+    }
+
+    async function openVerifyRequestModal() {
+        if (Rouh.me && Rouh.me.is_verified) { showToast('حسابك موثّق بالفعل ✅'); return; }
+        const { data: last } = await Rouh.sb.from('verification_requests').select('status,created_at')
+            .eq('user_id', Rouh.me.id).order('created_at', { ascending: false }).limit(1);
+        const lastReq = last && last[0];
+        if (lastReq && lastReq.status === 'pending') {
+            showPopup(`
+                <div style="text-align:center; padding:6px 0;">
+                    <i class="fa-solid fa-hourglass-half" style="font-size:2rem; color:var(--clr-amber);"></i>
+                    <h4 style="font-size:0.95rem; font-weight:800; margin:10px 0 6px;">طلبك قيد المراجعة</h4>
+                    <p style="font-size:0.78rem; color:var(--text-secondary); line-height:1.7;">أرسلت طلب توثيق ${Rouh.esc(Rouh.timeAgo(lastReq.created_at))}. سيراجعه المشرفون وستظهر الشارة بجانب اسمك عند القبول.</p>
+                    <button class="btn-save-modal" onclick="closePopup()">حسناً</button>
+                </div>`);
+            return;
+        }
+        const rejectedNote = lastReq && lastReq.status === 'rejected'
+            ? '<p style="font-size:0.74rem; color:#f43f5e; margin-bottom:10px;">تم رفض طلبك السابق، يمكنك إرسال طلب جديد.</p>' : '';
+        showPopup(`
+            <h4 style="font-size:0.96rem; font-weight:800; margin-bottom:8px;">
+                <i class="fa-solid fa-certificate" style="color:#38bdf8;"></i> طلب توثيق الحساب الرسمي
+            </h4>
+            ${rejectedNote}
+            <p style="font-size:0.76rem; color:var(--text-secondary); margin-bottom:12px;">
+                تُمنح شارة التوثيق لطلاب فريق روح الملتزمين والمشتركين وللأساتذة المشرفين:
+            </p>
+            <div class="form-field">
+                <label>الاسم الثلاثي الكامل</label>
+                <input type="text" id="verifyNameInp" value="${Rouh.esc(userProfile.name)}" placeholder="أدخل اسمك الكامل">
+            </div>
+            <div class="form-field">
+                <label>سبب طلب التوثيق</label>
+                <select id="verifyReasonSel">
+                    <option>طالب متفوق في منصة روح</option>
+                    <option>مشترك في باقات روح VIP</option>
+                    <option>مدرس / مشرف تربوي</option>
+                </select>
+            </div>
+            <button class="btn-save-modal" onclick="submitVerifyRequest()">
+                إرسال طلب التوثيق
+            </button>
+        `);
+    }
+
+    // يُرسل الطلب كرسالة دعم يراها المشرفون في بوابة المشرفين
+    async function submitVerifyRequest() {
+        const name = document.getElementById('verifyNameInp').value.trim();
+        const reason = document.getElementById('verifyReasonSel').value;
+        if (name.length < 2) { showToast('يرجى كتابة اسمك الكامل ⚠️'); return; }
+        const { error } = await Rouh.sb.from('verification_requests').insert({ user_id: Rouh.me.id, full_name: name, reason: reason });
+        if (error) {
+            showToast(error.code === '23505' ? 'لديك طلب قيد المراجعة بالفعل ⏳' : 'تعذر إرسال الطلب، حاول لاحقاً ⚠️');
+            return;
+        }
+        closePopup();
+        showToast('تم إرسال طلب التوثيق، سيراجعه المشرفون قريباً ✅');
+    }
+
+    function openNotificationsModal() {
+        showPopup(`
+            <h4 style="font-size:0.96rem; font-weight:800; margin-bottom:12px;">
+                <i class="fa-solid fa-bell" style="color:var(--clr-amber);"></i> إعدادات الإشعارات
+            </h4>
+            <div class="clean-item-card">
+                <div class="clean-item-txt">
+                    <h5>إشعارات الأخبار والقرارات الوزارية</h5>
+                    <p>تنبيه فوري عند صدور أي قرار تربوي جديد</p>
+                </div>
+                <input type="checkbox" checked style="width:18px; height:18px; accent-color:var(--rouh-green);">
+            </div>
+            <div class="clean-item-card">
+                <div class="clean-item-txt">
+                    <h5>تنبيهات الملخصات والاختبارات الجديدة</h5>
+                    <p>إشعار عند رفع نوطة أو بنك أتمتة جديد</p>
+                </div>
+                <input type="checkbox" checked style="width:18px; height:18px; accent-color:var(--rouh-green);">
+            </div>
+            <button class="btn-save-modal" onclick="closePopup(); showToast('تم حفظ إعدادات الإشعارات 🔔');">حفظ</button>
+        `);
+    }
+
+    function confirmLogout() {
+        showPopup(`
+            <div style="text-align:center;">
+                <div style="width:52px;height:52px;border-radius:16px;background:rgba(244,63,94,0.14);color:#f43f5e;display:flex;align-items:center;justify-content:center;font-size:1.35rem;margin:0 auto 10px;">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </div>
+                <h4 style="font-size:0.96rem; font-weight:800; margin-bottom:6px;">تسجيل الخروج من الحساب</h4>
+                <p style="font-size:0.78rem; color:var(--text-secondary); margin-bottom:14px;">
+                    هل أنت متأكد من رغبتك بتسجيل الخروج والعودة إلى شاشة الدخول؟
+                </p>
+                <div style="display:flex; gap:8px;">
+                    <button onclick="executeLogout()" style="flex:1; padding:11px; border:none; border-radius:12px; background:#f43f5e; color:#fff; font-weight:800; cursor:pointer;">نعم، خروج</button>
+                    <button onclick="closePopup()" style="flex:1; padding:11px; border:1px solid var(--border-light); border-radius:12px; background:var(--bg-app); color:var(--text-primary); font-weight:800; cursor:pointer;">إلغاء</button>
+                </div>
+            </div>
+        `);
+    }
+
+    function executeLogout() {
+        closePopup();
+        showToast('جارٍ تسجيل الخروج...');
+        Rouh.signOut();
+    }
+
+    function toggleDarkUI() { Rouh.toggleTheme('themeToggleIcon'); }
+
+    document.addEventListener('DOMContentLoaded', loadProfileState);
+</script>
+
+</body>
+</html>
