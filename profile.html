@@ -1298,6 +1298,16 @@
                 </button>
 
                 <!-- زر الإشعارات -->
+                <button class="setting-row-btn" onclick="enablePushNotificationsNow()">
+                    <div class="st-row-right">
+                        <div class="st-row-ico" style="--ico-bg:linear-gradient(135deg,#fb7185,#e11d48);"><i class="fa-solid fa-bell"></i></div>
+                        <div class="st-row-text">
+                            <h5>تفعيل الإشعارات على هذا الجهاز</h5>
+                            <p>السماح بإشعارات فريق روح وحفظ اشتراك هذا الجهاز تلقائيًا</p>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-left" style="color:var(--text-secondary); font-size:0.8rem;"></i>
+                </button>
                 <button class="setting-row-btn" onclick="openNotificationsModal()">
                     <div class="st-row-right">
                         <div class="st-row-ico" style="--ico-bg:linear-gradient(135deg,#fbbf24,#d97706);"><i class="fa-solid fa-bell"></i></div>
@@ -1970,6 +1980,17 @@
     }
 
     function toggleDarkUI() { Rouh.toggleTheme('themeToggleIcon'); }
+
+    async function enablePushNotificationsNow() {
+        try {
+            await Rouh.enableOneSignalNotifications();
+            showToast('تم تفعيل الإشعارات لهذا الجهاز ✅');
+        } catch (error) {
+            showToast(error && error.message === 'push_subscription_not_ready'
+                ? 'لم يكتمل الاشتراك. تحقق من سماح المتصفح بالإشعارات ثم أعد المحاولة.'
+                : 'تعذر تفعيل الإشعارات. تحقق من إعداد OneSignal واتصال الإنترنت.');
+        }
+    }
 
     document.addEventListener('DOMContentLoaded', loadProfileState);
 </script>

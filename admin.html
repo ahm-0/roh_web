@@ -1178,6 +1178,20 @@
             </div>
         </div>
 
+        <!-- إرسال إشعار OneSignal عام للأدمن فقط -->
+        <div class="kpi-action-card" data-role="admin" style="margin:0 0 14px; cursor:pointer;" onclick="openGeneralNotificationModal()">
+            <div class="kpi-top-row">
+                <span class="kpi-big-num" style="font-size:1.05rem;">إشعار عام للمستخدمين</span>
+                <div class="kpi-icon-orb" style="--orb-bg:rgba(225,29,72,0.14); --orb-clr:#e11d48;">
+                    <i class="fa-solid fa-bell"></i>
+                </div>
+            </div>
+            <div class="kpi-bottom-meta">
+                <span>إرسال Push إلى الأجهزة التي فعّلت الإشعارات</span>
+                <span style="color:#e11d48;">إعداد وإرسال <i class="fa-solid fa-arrow-left"></i></span>
+            </div>
+        </div>
+
         <!-- طلبات التوثيق -->
         <div class="kpi-action-card" style="margin:0 0 14px; cursor:pointer;" onclick="openVerificationRequests()">
             <div class="kpi-top-row">
@@ -1446,6 +1460,34 @@
             .on('postgres_changes', { event: '*', schema: 'public', table: 'support_threads' }, onSupportChange)
             .on('postgres_changes', { event: '*', schema: 'public', table: 'verification_requests' }, refreshVerifyCount)
             .subscribe();
+    }
+
+    function openGeneralNotificationModal() {
+        if (!Rouh.isAdmin()) { showToast('إرسال الإشعار العام متاح للأدمن فقط'); return; }
+        showPopup(`<h4 style="font-size:.96rem;font-weight:900;margin-bottom:8px;"><i class="fa-solid fa-bell" style="color:#e11d48;"></i> إرسال إشعار عام</h4>
+            <p style="font-size:.76rem;color:var(--text-secondary);line-height:1.7;margin-bottom:10px;">سيصل الإشعار إلى المستخدمين الذين سمحوا بالإشعارات على أجهزتهم.</p>
+            <input id="broadcastTitle" maxlength="100" value="إشعار من فريق روح" placeholder="عنوان الإشعار" style="${CM_FIELD}">
+            <textarea id="broadcastMessage" maxlength="2000" rows="4" placeholder="نص الإشعار" style="${CM_FIELD};resize:vertical;"></textarea>
+            <button id="sendBroadcastBtn" class="btn-main-action" onclick="sendGeneralNotificationNow()"><i class="fa-solid fa-paper-plane"></i> متابعة الإرسال</button>`);
+    }
+
+    async function sendGeneralNotificationNow() {
+        if (!Rouh.isAdmin()) { showToast('إرسال الإشعار العام متاح للأدمن فقط'); return; }
+        const title = document.getElementById('broadcastTitle')?.value.trim() || '';
+        const message = document.getElementById('broadcastMessage')?.value.trim() || '';
+        if (!title || !message) { showToast('أدخل عنوان الإشعار ونصه'); return; }
+        if (!confirm(`سيتم إرسال الإشعار التالي إلى جميع المشتركين:\n\n${title}\n${message}\n\nهل تريد الإرسال الآن؟`)) return;
+        const btn = document.getElementById('sendBroadcastBtn');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جارٍ الإرسال…'; }
+        const { data, error } = await Rouh.sb.functions.invoke('send-general-notification', { body: { title, message } });
+        if (error || !data?.ok) {
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> إعادة المحاولة'; }
+            const reason = data?.error || error?.message || '';
+            showToast(reason === 'onesignal_app_id_missing' ? 'إعداد OneSignal غير مكتمل' : reason === 'admin_only' ? 'هذه الوظيفة للأدمن فقط' : 'تعذر إرسال الإشعار. تحقق من إعداد OneSignal.');
+            return;
+        }
+        closePopup();
+        showToast(data.notified ? `تم إرسال الإشعار إلى ${data.notified} اشتراكاً ✅` : 'لم يُرسل إشعار: لا توجد أجهزة مشتركة حتى الآن');
     }
 
     function hourSlot(iso) {

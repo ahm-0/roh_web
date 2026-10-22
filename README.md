@@ -28,6 +28,12 @@ student (طالب) • teacher (دور تعريفي فقط؛ لا يمنح رف�
 - التوثيق: الطالب يقدّم طلباً من أيقونة الشارة في ملفه الشخصي، والمشرف يراجعه من بوابة المشرفين ← طلبات التوثيق.
 - رسائل المشرفين في الدردشة تظهر بفقاعة مميزة مع شارة «مشرف».
 
+## إشعارات OneSignal العامة
+- بعد تسجيل الدخول يسجل الموقع هوية المستخدم في OneSignal. تفعيل الإشعارات يتم بموافقة المستخدم من الملف الشخصي ← الإعدادات ← «تفعيل الإشعارات على هذا الجهاز»، ثم يُحفظ `subscription_id` في `push_subscriptions` بسياسات RLS تقصر القراءة والكتابة على صاحب الحساب.
+- الأدمن فقط يرى أداة «إشعار عام للمستخدمين» في لوحة الإشراف. الإرسال يمر عبر Supabase Edge Function `send-general-notification` التي تتحقق من JWT ودور `admin` قبل استهداف الاشتراكات.
+- OneSignal App ID قيمة عامة محفوظة في `app_settings`؛ REST API key سرّ خادمي باسم `ONESIGNAL_REST_API_KEY` ويجب إضافته في Supabase Dashboard ← Edge Functions ← Secrets. لا يوضع المفتاح في ملفات الموقع أو GitHub.
+- عامل الخدمة المطلوب لـ OneSignal موجود في `OneSignalSDKWorker.js` ويعمل ضمن مسار GitHub Pages للمشروع.
+
 ترحيل قاعدة البيانات المرتبط بهذه الميزات: `migrations/202610210945_content_sections_and_image_restrictions.sql`.
 
 ## التطبيق الأصلي (Capacitor)

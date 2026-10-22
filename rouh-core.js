@@ -153,6 +153,72 @@
     Rouh.hasRole = function (r) { return Rouh.roles.indexOf(r) > -1; };
     Rouh.isAdmin = function () { return Rouh.hasRole('admin'); };
     Rouh.isStaff = function () { return Rouh.hasRole('admin') || Rouh.hasRole('supervisor'); };
+    var oneSignalInitPromise = null;
+    var oneSignalClient = null;
+    async function saveOneSignalSubscription() {
+        if (!Rouh.me || !oneSignalClient) return null;
+        var push = oneSignalClient.User && oneSignalClient.User.PushSubscription;
+        var subscriptionId = push && push.id;
+        if (!subscriptionId || !push.optedIn) return null;
+        var result = await sb.from('push_subscriptions').upsert({
+            user_id: Rouh.me.id,
+            provider: 'onesignal',
+            subscription_id: subscriptionId,
+            updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id,provider,subscription_id' });
+        if (result.error) throw result.error;
+        return subscriptionId;
+    }
+    Rouh.initOneSignal = function () {
+        if (!Rouh.me) return Promise.resolve(null);
+        if (oneSignalInitPromise) return oneSignalInitPromise;
+        oneSignalInitPromise = (async function () {
+            var setting = await sb.from('app_settings').select('value').eq('key', 'onesignal_app_id').maybeSingle();
+            var appId = setting.data && setting.data.value && setting.data.value.app_id;
+            if (setting.error) throw setting.error;
+            if (!appId) return null;
+            if (!window.OneSignalDeferred) window.OneSignalDeferred = [];
+            return await new Promise(function (resolve, reject) {
+                window.OneSignalDeferred.push(async function (OneSignal) {
+                    try {
+                        var workerPath = new URL('OneSignalSDKWorker.js', document.baseURI).pathname;
+                        var workerScope = new URL('.', document.baseURI).pathname;
+                        await OneSignal.init({ appId: appId, serviceWorkerPath: workerPath, serviceWorkerParam: { scope: workerScope } });
+                        await OneSignal.login(Rouh.me.id);
+                        oneSignalClient = OneSignal;
+                        OneSignal.User.PushSubscription.addEventListener('change', function (event) {
+                            if (event.current && event.current.id && event.current.optedIn) {
+                                saveOneSignalSubscription().catch(function () { /* retry on next page load */ });
+                            }
+                        });
+                        await saveOneSignalSubscription();
+                        resolve(OneSignal);
+                    } catch (error) { reject(error); }
+                });
+                if (!document.querySelector('script[data-onesignal-sdk]')) {
+                    var sdk = document.createElement('script');
+                    sdk.src = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';
+                    sdk.defer = true; sdk.dataset.onesignalSdk = 'true';
+                    sdk.onerror = function () { reject(new Error('onesignal_sdk_load_failed')); };
+                    document.head.appendChild(sdk);
+                }
+            });
+        })().catch(function () { oneSignalInitPromise = null; return null; });
+        return oneSignalInitPromise;
+    };
+    Rouh.enableOneSignalNotifications = async function () {
+        var client = await Rouh.initOneSignal();
+        if (!client) throw new Error('onesignal_unavailable');
+        await client.Notifications.requestPermission();
+        await client.User.PushSubscription.optIn();
+        var id = null;
+        for (var attempt = 0; attempt < 20 && !id; attempt++) {
+            id = await saveOneSignalSubscription();
+            if (!id) await new Promise(function (resolve) { setTimeout(resolve, 250); });
+        }
+        if (!id) throw new Error('push_subscription_not_ready');
+        return id;
+    };
     var contentPermissions = [];
     Rouh.refreshContentPermissions = async function () {
         contentPermissions = [];
@@ -285,6 +351,8 @@
             return null;
         }
         await Rouh.refreshContentPermissions();
+        // Register the signed-in account with OneSignal; permission is requested only by an explicit user action.
+        Rouh.initOneSignal();
         // تحديث آخر ظهور (مرة كل 10 دقائق كحد أقصى)
         try {
             var last = Number(sessionStorage.getItem('rouh_seen_at') || 0);
