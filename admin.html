@@ -1968,15 +1968,26 @@
         const isBook = kind === 'book';
         const kindLabel = kind === 'book' ? 'كتاب' : kind === 'summary' ? 'ملخص' : 'نوطة';
         const cnt = await Rouh.sb.from('library_items').select('id', { count: 'exact', head: true });
-        const { error } = await Rouh.sb.from('library_items').insert({
+        const { data: insertedFile, error } = await Rouh.sb.from('library_items').insert({
             stage: st, kind: kind, badge: kindLabel, title: title, subject: subject, info: info || kindLabel,
             accent: isBook ? '#3b82f6' : kind === 'summary' ? '#8b5cf6' : '#10b981', soft: isBook ? 'rgba(59,130,246,0.14)' : kind === 'summary' ? 'rgba(139,92,246,0.14)' : 'rgba(16,185,129,0.14)',
-            icon: isBook ? 'fa-book' : 'fa-file-lines', file_url: fileUrl, sort_order: (cnt.count || 0) + 100
-        });
+            icon: isBook ? 'fa-book' : 'fa-file-lines', file_url: fileUrl, sort_order: (cnt.count || 0) + 100,
+            created_by: Rouh.me.id
+        }).select('id').single();
         if (error) { showToast('تعذر إضافة الملف (تحقق من صلاحيتك) ⚠️'); return; }
         showToast('تمت إضافة الملف ✅');
+        await notifyContentAdded('file', insertedFile.id);
         document.getElementById('cmFTitle').value = ''; document.getElementById('cmFInfo').value = ''; document.getElementById('cmFLink').value = '';
         cmFLoadList();
+    }
+
+    async function notifyContentAdded(contentType, contentId) {
+        try {
+            const { data, error } = await Rouh.sb.functions.invoke('send-general-notification', {
+                body: { action: 'content_added', content_type: contentType, content_id: contentId }
+            });
+            if (error || !data?.ok) showToast('تمت الإضافة، لكن تعذر إرسال إشعار المحتوى الجديد ⚠️');
+        } catch (e) { showToast('تمت الإضافة، لكن تعذر إرسال إشعار المحتوى الجديد ⚠️'); }
     }
 
     // ---------- الفيديوهات (روابط درايف) ----------
@@ -2022,13 +2033,14 @@
         if (!Rouh.canManageContent(sub.stage, 'lessons')) { showToast('لا تملك صلاحية فيديوهات الدروس لهذه المرحلة ⚠️'); return; }
         if (!sub.name || !topic || !title) { showToast('أدخل المادة والموضوع وعنوان الفيديو ⚠️'); return; }
         if (!videoUrl) { showToast('أدخل رابط فيديو صحيحاً ⚠️'); return; }
-        const { error } = await Rouh.sb.from('lesson_videos').insert({
+        const { data: insertedVideo, error } = await Rouh.sb.from('lesson_videos').insert({
             stage: sub.stage, subject_id: sub.id, subject_name: sub.name, topic: topic, title: title,
             video_url: videoUrl, grad: sub.grad, created_by: Rouh.me.id,
             is_protected: document.getElementById('cmVProtect').checked
-        });
+        }).select('id').single();
         if (error) { showToast('تعذر إضافة الفيديو (تحقق من صلاحيتك) ⚠️'); return; }
         showToast('تمت إضافة الفيديو ✅');
+        await notifyContentAdded('video', insertedVideo.id);
         document.getElementById('cmVTitle').value = ''; document.getElementById('cmVLink').value = '';
         cmVLoadList();
     }

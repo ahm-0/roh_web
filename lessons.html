@@ -2474,12 +2474,18 @@
         let videoUrl = ''; try { const u = new URL(raw); if (u.protocol === 'https:' || u.protocol === 'http:') videoUrl = u.href; } catch (e) {}
         if (!videoUrl) { showToast('أدخل رابط فيديو صالحاً يبدأ بـ HTTPS أو HTTP ⚠️'); return; }
         try {
-            const { error } = await Rouh.sb.from('lesson_videos').insert({
+            const { data: insertedVideo, error } = await Rouh.sb.from('lesson_videos').insert({
                 stage: activeStageKey, subject_id: subId, subject_name: subName, topic: topic, title: title,
                 video_url: videoUrl, grad: subGrad, created_by: currentUser.id,
                 is_protected: !!($('upProtectChk') && $('upProtectChk').checked)
-            });
+            }).select('id').single();
             if (error) throw error;
+            try {
+                const { data: notifyData, error: notifyError } = await Rouh.sb.functions.invoke('send-general-notification', {
+                    body: { action: 'content_added', content_type: 'video', content_id: insertedVideo.id }
+                });
+                if (notifyError || !notifyData?.ok) showToast('تم نشر الدرس، لكن تعذر إرسال إشعار للمستخدمين ⚠️');
+            } catch (notifyErr) { showToast('تم نشر الدرس، لكن تعذر إرسال إشعار للمستخدمين ⚠️'); }
             await loadCustomLessons();
             closePopup();
             if (activeSubjectObj && activeSubjectObj.id === subId) {
