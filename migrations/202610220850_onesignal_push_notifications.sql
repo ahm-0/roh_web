@@ -36,6 +36,6 @@ CREATE POLICY push_subscriptions_delete_own ON public.push_subscriptions
 
 -- The App ID is public by design; only the REST API key is secret.
 INSERT INTO public.app_settings (key, value, updated_at)
-VALUES ('onesignal_app_id', '{"app_id":"ebed747b-3d7f-4686-a501-633e1111100b"}'::jsonb, now())
+VALUES ('onesignal_app_id', '{"app_id":"f96774ae-3355-4a66-bda2-7a44730432fe"}'::jsonb, now())
 ON CONFLICT (key) DO UPDATE
 SET value = EXCLUDED.value, updated_at = now();
