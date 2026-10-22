@@ -16,6 +16,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.getcapacitor.BridgeActivity;
+import com.onesignal.Continue;
 import com.onesignal.OneSignal;
 
 /**
@@ -44,6 +45,7 @@ public class RohMainActivity extends BridgeActivity {
         webView.setBackgroundColor(Color.rgb(16, 22, 74));
         webView.addJavascriptInterface(new RohBridge(), "RohAndroid");
         initializeOneSignal();
+        requestOneSignalPermissionOnce();
         publishOneSignalPlayerId(0);
 
         // Do not replace Capacitor's internal WebViewClient: it owns bridge and
@@ -67,22 +69,24 @@ public class RohMainActivity extends BridgeActivity {
 
     private void initializeOneSignal() {
         try {
-            OneSignal.initWithContext(this, ONESIGNAL_APP_ID);
-            if (!getSharedPreferences("roh_onesignal", MODE_PRIVATE)
-                    .getBoolean("permission_requested", false)) {
-                getSharedPreferences("roh_onesignal", MODE_PRIVATE).edit()
-                        .putBoolean("permission_requested", true).apply();
-                new android.os.Handler(getMainLooper()).postDelayed(() -> {
-                    if (android.os.Build.VERSION.SDK_INT >= 33
-                            && checkSelfPermission("android.permission.POST_NOTIFICATIONS")
-                            != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-                        requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"}, 9001);
-                    }
-                }, 1200L);
-            }
+            OneSignal.initWithContext(getApplicationContext(), ONESIGNAL_APP_ID);
         } catch (Exception ignored) {
-            // Notification setup must never prevent the web app from opening.
+            // لا تمنع أخطاء تهيئة الإشعارات فتح التطبيق.
         }
+    }
+
+    private void requestOneSignalPermissionOnce() {
+        if (getSharedPreferences("roh_onesignal", MODE_PRIVATE)
+                .getBoolean("permission_requested", false)) return;
+        getSharedPreferences("roh_onesignal", MODE_PRIVATE).edit()
+                .putBoolean("permission_requested", true).apply();
+        oneSignalHandler.postDelayed(() -> {
+            try {
+                OneSignal.getNotifications().requestPermission(false, Continue.none());
+            } catch (Exception ignored) {
+                // Notification setup must never prevent the web app from opening.
+            }
+        }, 1200L);
     }
 
     private String readOneSignalPlayerId() {
