@@ -155,11 +155,13 @@
     Rouh.isStaff = function () { return Rouh.hasRole('admin') || Rouh.hasRole('supervisor'); };
     var oneSignalInitPromise = null;
     var oneSignalClient = null;
-    async function saveOneSignalSubscription() {
-        if (!Rouh.me || !oneSignalClient) return null;
-        var push = oneSignalClient.User && oneSignalClient.User.PushSubscription;
-        var subscriptionId = push && push.id;
-        if (!subscriptionId || !push.optedIn) return null;
+    var pendingNativeOneSignalId = '';
+    var lastSavedOneSignalId = '';
+    var nativeOneSignalSyncPromise = null;
+    async function saveOneSignalId(subscriptionId) {
+        subscriptionId = String(subscriptionId || '').trim();
+        if (!Rouh.me || !subscriptionId) { pendingNativeOneSignalId = subscriptionId; return null; }
+        if (lastSavedOneSignalId === Rouh.me.id + ':' + subscriptionId) return subscriptionId;
         var result = await sb.from('push_subscriptions').upsert({
             user_id: Rouh.me.id,
             provider: 'onesignal',
@@ -167,10 +169,64 @@
             updated_at: new Date().toISOString()
         }, { onConflict: 'user_id,provider,subscription_id' });
         if (result.error) throw result.error;
+        lastSavedOneSignalId = Rouh.me.id + ':' + subscriptionId;
+        pendingNativeOneSignalId = '';
         return subscriptionId;
+    }
+    function receiveNativeOneSignalId(id) {
+        id = String(id || '').trim();
+        if (!id) return;
+        pendingNativeOneSignalId = id;
+        if (Rouh.me) retrySaveOneSignalId(id, 0);
+    }
+    function retrySaveOneSignalId(id, attempt) {
+        saveOneSignalId(id).catch(function (error) {
+            console.warn('[Rouh] تعذرت مزامنة OneSignal subscription ID', error);
+            if (attempt < 4 && Rouh.me) setTimeout(function () { retrySaveOneSignalId(id, attempt + 1); }, 1000 * (attempt + 1));
+        });
+    }
+    window.addEventListener('roh:onesignal-player-id', function (event) {
+        var detail = event && event.detail || {};
+        receiveNativeOneSignalId(detail.subscriptionId || detail.playerId || detail.id);
+    });
+    window.addEventListener('message', function (event) {
+        var data = event && event.data;
+        if (data && data.type === 'ROH_ONESIGNAL_PLAYER_ID') receiveNativeOneSignalId(data.subscriptionId || data.playerId || data.id);
+    });
+    if (window.NativeOneSignalPlayerId || window.NativeOneSignalId) {
+        receiveNativeOneSignalId(window.NativeOneSignalPlayerId || window.NativeOneSignalId);
+    }
+    async function syncNativeOneSignalId() {
+        if (!window.RohAndroid) return null;
+        try {
+            var getId = window.RohAndroid.getSubscriptionId || window.RohAndroid.getOneSignalPlayerId || window.RohAndroid.getOneSignalId;
+            if (typeof getId === 'function') receiveNativeOneSignalId(getId.call(window.RohAndroid));
+            if (pendingNativeOneSignalId) return await saveOneSignalId(pendingNativeOneSignalId);
+            if (typeof window.RohAndroid.requestOneSignalPlayerId === 'function') {
+                window.RohAndroid.requestOneSignalPlayerId();
+                await new Promise(function (resolve) { setTimeout(resolve, 500); });
+                if (pendingNativeOneSignalId) return await saveOneSignalId(pendingNativeOneSignalId);
+            }
+        } catch (error) {
+            console.warn('[Rouh] تعذر طلب OneSignal ID من التطبيق الأصلي', error);
+        }
+        return null;
+    }
+    async function saveOneSignalSubscription() {
+        if (!Rouh.me || !oneSignalClient) return null;
+        var push = oneSignalClient.User && oneSignalClient.User.PushSubscription;
+        var subscriptionId = push && push.id;
+        if (!subscriptionId || !push.optedIn) return null;
+        return await saveOneSignalId(subscriptionId);
     }
     Rouh.initOneSignal = function () {
         if (!Rouh.me) return Promise.resolve(null);
+        if (window.RohAndroid) {
+            if (!nativeOneSignalSyncPromise) {
+                nativeOneSignalSyncPromise = syncNativeOneSignalId().finally(function () { nativeOneSignalSyncPromise = null; });
+            }
+            return nativeOneSignalSyncPromise.then(function () { return { native: true }; });
+        }
         if (oneSignalInitPromise) return oneSignalInitPromise;
         oneSignalInitPromise = (async function () {
             var setting = await sb.from('app_settings').select('value').eq('key', 'onesignal_app_id').maybeSingle();
@@ -209,6 +265,11 @@
     Rouh.enableOneSignalNotifications = async function () {
         var client = await Rouh.initOneSignal();
         if (!client) throw new Error('onesignal_unavailable');
+        if (client.native) {
+            if (!pendingNativeOneSignalId) await syncNativeOneSignalId();
+            if (!pendingNativeOneSignalId && !lastSavedOneSignalId) throw new Error('push_subscription_not_ready');
+            return pendingNativeOneSignalId || lastSavedOneSignalId.split(':').slice(1).join(':');
+        }
         await client.Notifications.requestPermission();
         await client.User.PushSubscription.optIn();
         var id = null;

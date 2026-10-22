@@ -33,6 +33,8 @@ student (طالب) • teacher (دور تعريفي فقط؛ لا يمنح رف�
 - الأدمن فقط يرى أداة «إشعار عام للمستخدمين» في لوحة الإشراف. الإرسال يمر عبر Supabase Edge Function `send-general-notification` التي تتحقق من JWT ودور `admin` قبل استهداف الاشتراكات.
 - OneSignal App ID قيمة عامة محفوظة في `app_settings`؛ REST API key سرّ خادمي باسم `ONESIGNAL_REST_API_KEY` ويجب إضافته في Supabase Dashboard ← Edge Functions ← Secrets. لا يوضع المفتاح في ملفات الموقع أو GitHub.
 - عامل الخدمة المطلوب لـ OneSignal موجود في `OneSignalSDKWorker.js` ويعمل ضمن مسار GitHub Pages للمشروع.
+- تطبيق Capacitor يرسل OneSignal subscription ID عبر `RohAndroid` كحدث `roh:onesignal-player-id`؛ تستمع النواة الآن لهذا الحدث وتستدعي واجهات الجسر الأصلية عند تسجيل الدخول ثم تحفظ الاشتراك في قاعدة البيانات مع إعادة المحاولة عند تعذر الشبكة.
+- يجب أن يطابق `ONESIGNAL_APP_ID` في `RohMainActivity.java` المعرّف المسجل في `app_settings.onesignal_app_id`. إذا تغير App ID، حدّث مشروع Android إلى `f96774ae-3355-4a66-bda2-7a44730432fe` وأعد بناء/تثبيت التطبيق؛ ملفات الويب وحدها لا تغيّر إعداد OneSignal المضمّن في APK الموجود.
 
 ترحيل قاعدة البيانات المرتبط بهذه الميزات: `migrations/202610210945_content_sections_and_image_restrictions.sql`.
 
